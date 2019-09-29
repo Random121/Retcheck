@@ -1,3 +1,12 @@
+/* This file is used for auto-updating exploits in rblx
+ * 
+ * for example:
+ *
+ * eyestep::use(GetCurrentProcess());
+ * rbx::instances::fetch();
+ * int rL = rbx::get_lua_state(rbx::instances::script_context);
+ * printf("Lua State: %08X.\n", rL);
+*/
 #ifndef H_EYESTEP_RBX
 #define H_EYESTEP_RBX
 #include "eyestep_util.h"
