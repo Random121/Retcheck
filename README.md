@@ -7,6 +7,8 @@ both external and DLL applications.
 simply use eyestep::exeutil if you're disassembling a remote application,
 and eyestep::dllutil if you're using eyestep in a DLL.
 
+
+
 # Function Usage
 "direction" can be direction::ahead, or direction::behind.
 this determines if it goes forwards or backwards starting
@@ -20,6 +22,8 @@ fretn(function);                      returns the stack size ret'd at the end of
 getconv(function);                    returns the calling convention of a function (as an ID; e.g. 1 = conv_stdcall).
 getsconv(conv);                       translates a convention ID to a string, e.g. 1 --> "stdcall"
 debug(address, register, offset);     Places a hook, reading the value of [register+offset] at address. For example, if we have a mov ecx,[ebp+8] instruction at 0x12000000, and we do this: uint32_t x=debug(0x12000000, ebp, 8), as soon as that instruction is executed, you will have the value at the offset 8 from ebp. The hook is removed instantly after, preventing detection.
+
+
 
 # Writing instructions
 
@@ -48,6 +52,7 @@ addr += eyestep::write(addr, "int3").len;
 this can make writing asm in another process easier.
 however it is completely in development still and
 needs optimization, and some rewriting.
+
 
 
 
