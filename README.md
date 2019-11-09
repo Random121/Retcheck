@@ -80,19 +80,25 @@ We'll pretend esi is lua state, and we know this instruction uses the top offset
 how can we grab the +8 which is going to be the offset to lua state's "top" property?
 
 // first we read it with eyestep
+
 eyestep::inst i = eyestep::read(0x847EFB);
 
 // then, we can check if the instruction here has both operands (it does)
+
 if (i.flags & Fl_src_dest){
 
   // then, we can check if the destination (second) operand uses an 8 bit offset ("imm8")
+  
   if (i.flags & Fl_dest_imm8){
 
     // Now we know it uses an 8 bit offset; let's figure out what the offset is
+    
     uint8_t offset = i.dest.imm8;
+    
     printf("offset: +%i\n", offset); // offset: +8
 
   }
+  
 }
 
 
