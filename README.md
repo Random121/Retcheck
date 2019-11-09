@@ -104,13 +104,21 @@ if (i.flags & Fl_src_dest){
 
 Notes:
 
+
 i.src and i.dest have the exact same properties;
+
 they are the first and second part of most instructions.
+
 Here's an explanation of their properties:
 
 dest.imm8 is an 8 bit(1 byte) offset from a register if there is one. (like mov eax,[edi+3C])
+
 dest.imm32 is a 32 bit(4 byte/int) offset from a register if there is one. (like mov eax,[edi+0028CDBE])
+
 dest.disp8 is an 8 bit(1 byte) fixed value. (like mov eax,3C)
+
 dest.disp32 is a 32 bit(4 byte/int) fixed value. (like mov eax,0028CDBE)
+
 dest.r32 is the first 32-bit register in the destination operand
+
 dest.r_2 is the second register in the destination operand, following the same bit-size as the first one.
