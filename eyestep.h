@@ -476,12 +476,20 @@ namespace eyestep {
 				p.flags |= Fl_src_dest | Fl_src_rm32 | Fl_dest_rxmm; // swapped
 				p.r_mod = getmode40(b,++l);
 				p.dest.rxmm = getr1(b,l);
+			} else if (b[l] == 0x2C){
+				p.dest.pref |= PRE_QWORD_PTR;
+				p.set_op("cvttsd2si");
+				p.flags |= Fl_src_dest | Fl_src_r32 | Fl_dest_rm32;
+				p.r_mod = getmode40(b,++l);
+				p.src.r32 = getr1(b,l); // note to self...update all r32 src's for these
 			} else if (b[l] == 0x2E){
-				p.set_op("ucomiss");
+				p.dest.pref |= PRE_QWORD_PTR;
+				p.set_op("ucomisd");
 				p.flags |= Fl_src_dest | Fl_src_rxmm | Fl_dest_rm32;
 				p.r_mod = getmode40(b,++l);
 				p.src.rxmm = getr1(b,l);
 			} else if (b[l] == 0x2F){
+				//p.dest.pref |= PRE_QWORD_PTR;
 				p.set_op("comiss");
 				p.flags |= Fl_src_dest | Fl_src_rxmm | Fl_dest_rm32;
 				p.r_mod = getmode40(b,++l);
@@ -495,6 +503,19 @@ namespace eyestep {
 				p.flags |= Fl_src_dest | Fl_src_r32 | Fl_dest_rm32;
 				p.r_mod = getmode40(b,++l);
 				p.src.r32 = getr1(b,l);
+			} else if ((c=(b[l] & 0x50)) && b[l]<c+16) {
+				const char* select_opcodes[] = { "movmskps", "sqrtps", "rsqrtps", "rcpps", "andps", "andnps", "orps", "xorps", "addps", "mulps", "cvtps2pd", "cvtdq2ps", "subps", "minps", "divps", "maxps" };
+				p.dest.pref |= PRE_QWORD_PTR;
+				p.set_op(select_opcodes[b[l]-c]);
+				p.flags |= Fl_src_dest | Fl_src_rxmm | Fl_dest_rm32;
+				p.r_mod = getmode40(b,++l);
+				p.src.rxmm = getr1(b,l);
+			} else if (b[l] == 0x6E){
+				p.dest.pref |= PRE_DWORD_PTR;
+				p.set_op("movd");
+				p.flags |= Fl_src_dest | Fl_src_rxmm | Fl_dest_rm32;
+				p.r_mod = getmode40(b,++l);
+				p.src.rxmm = getr1(b,l);
 			} else if (b[l] == 0x7E){
 				p.dest.pref |= PRE_QWORD_PTR;
 				p.set_op("movq");
@@ -547,6 +568,65 @@ namespace eyestep {
 				p.flags |= Fl_src_dest | Fl_src_r32 | Fl_dest_rm32;
 				p.r_mod = getmode40(b, ++l);
 				p.src.r32 = getr1(b, l);
+			} else if (b[l] == 0xD6){
+				p.src.pref |= PRE_QWORD_PTR;
+				p.set_op("movq");
+				p.flags |= Fl_src_dest | Fl_src_rm32 | Fl_dest_rxmm;
+				p.r_mod = getmode40(b,++l);
+				p.dest.rxmm = getr1(b,l);
+			} else if (b[l] == 0xE6){
+				// let's break down what we're doing (if you happen
+				// to be reading this).
+				// The current instruction could be cvtdq2pd eax,xmm0.
+				// it's a cvtdq2pd instruction. simple.
+				// The bytes will be F3 0F E6 C0.
+				// `F3` determines what form of cvtdq2pd to use; (32-bit/16-bit)
+				// we'll skip this for now. (I dont even include too many
+				// 16-bit instructions; just the most common ones)
+				// `0F` implies it's one of these instructions in this set. ignore
+				// `E6` implies it's the cvtdq2pd instruction.
+				// `C0` implies everything else; it's the `mod` byte.
+				// It determines both the src and dest operand, however,
+				// if it were below C0 it `might` have an extending 
+				// byte that determines more about the src or dest operand.
+				// There is alot that goes into this; just know it's
+				// the `mod` byte.
+				p.dest.pref |= PRE_QWORD_PTR;
+				// ^ Prefix flag for a src or dest operand;
+				// This implies that, if the `mod` byte is over
+				// 0xC0, rather than being		cvtdq2pd xmm0,eax
+				// it will instead turn into	cvtdq2pd xmm0,xmm0
+				// Many instructions have to have this recognized
+				// It also implies that offsets should have a mark;
+				// cvtdq2pd xmm0, [eax+04]		will instead show:
+				// cvtdq2pd xmm0, QWORD PTR [eax+04].
+				// So, this flag is important, but easy to recognize.
+				p.set_op("cvtdq2pd");
+				p.flags |= Fl_src_dest | Fl_src_rxmm | Fl_dest_rm32;
+				// Normal flags; our instruction contains a src and dest
+				// so we include Fl_src_dest.
+				// First half of the opcode(src) is supposed to be a
+				// a floating point register; xmm0-xmm7. Always.
+				// so we use Fl_src_rxmm.
+				// The second half of the opcode(dest) has to be a
+				// 32-bit register(eax,ecx,edx, . . .), but it can also
+				// contain a long offset; [eax+4*4], [ebx+ebx], etc.
+				// so we would do Fl_dest_rm32 rather than Fl_dest_r32.
+				p.r_mod = getmode40(b,++l);
+				// move onto the next byte to interpret, while storing
+				// the `mod` identifier byte into r_mod, for help in
+				// calculating the rest of the instruction.
+				// this is important, since we have to move onto the
+				// next byte and allow the system below to finish up
+				// computing the instruction.
+				p.src.rxmm = getr1(b,l);
+				// ^ I can't remember the exact reason for this line,
+				// except that it'll guarantee src.rxmm has the correct value.
+				// We typically set src.rxmm (or whatever we used for src),
+				// IF the `dest` flag is an rm32.
+				// And we would set dest.rxmm if the `src` flag is an rm32.
+				// This is because the rm32 mode can cause the bytes
+				// to be kind of shifted around for src operand
 			}
 		} else if (b[l] == 0x10){
 			p.set_op("adc");
@@ -742,7 +822,6 @@ namespace eyestep {
 			l++, p.set_op("pushad");
 		else if (b[l] == 0x61)
 			l++, p.set_op("popad");
-			//   movq . . . . 66 0F D6 02
 		else if (b[l] == 0x68){
 			l++, p.set_op("push");
 			p.flags |= Fl_src_only | Fl_src_disp32;
@@ -1268,9 +1347,8 @@ namespace eyestep {
 							mode = getmode20(b,l);
 							p.dest.r32 = b[l]%8;
 							
-							// The order that this is done is extremely
-							// precise to work for the weird-ass modes
-							// intel has in place -- do not change
+							// The order that this is done is extremely precise
+							// and important for the computation
 							if (!(b[l]-(32*mode) < 8 && (mode%2==1))){
 								if (b[l]%8 != 5){
 									strcat_s(p.data, c_reg_32[p.dest.r32]);
@@ -1432,7 +1510,7 @@ namespace eyestep {
 		int		to_int	(uint8_t a, uint8_t b, uint8_t c, uint8_t d){ return int(a<<24|b<<16|c<<8|d); }
 		uint32_t pbtodw(uint8_t* b){ return (b[0])|(b[1]<<8)|(b[2]<<16)|(b[3]<<24); }
 		uint8_t* dwtopb(uint32_t v){ uint8_t* data=new uint8_t[4]; memcpy(data,&v,4); return data; }
-
+		
 		// translation
 		uint8_t to_hex(char* x) {
 			if (lstrlenA(x)<2) return 0;
