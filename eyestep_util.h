@@ -143,15 +143,24 @@ namespace PEB {
 namespace eyestep {
 	const int MAX_STR_READ = 1024;
 
+	bool find_in_table(uint8_t* t, uint8_t b) {
+		for (int i = 0; i < sizeof(t) / sizeof(uint8_t); i++) {
+			if (b == t[i]) {
+				return true;
+			}
+		}
+		return false;
+	};
+
 	bool isgood(uint32_t addr) {
-		return (addr>base && addr<0x3FFFFFFF && addr%4==0);
+		return (addr > base && addr < 0x3FFFFFFF && addr % 4 == 0);
 	}
 
 	typedef uint8_t conv;
-	conv conv_cdecl		= 0;
-	conv conv_stdcall	= 1;
-	conv conv_thiscall	= 2;
-	conv conv_fastcall	= 3;
+	conv conv_cdecl = 0;
+	conv conv_stdcall = 1;
+	conv conv_thiscall = 2;
+	conv conv_fastcall = 3;
 
 	struct cbyte {
 		std::vector<uint8_t>bytes;
@@ -215,37 +224,37 @@ namespace eyestep {
 
 	namespace exeutil {
 		// I made this look as pretty as possible :---)
-		uint8_t* readb(uint32_t addr, size_t count){ uint8_t* x = new uint8_t[count]; pmread(handle, vcast(addr), x, count, 0); return x; }
-		uint8_t	 readb(uint32_t addr)  { uint8_t	x = 0; pmread(handle, vcast(addr), &x, 1, 0); return x; }
+		uint8_t* readb(uint32_t addr, size_t count) { uint8_t* x = new uint8_t[count]; pmread(handle, vcast(addr), x, count, 0); return x; }
+		uint8_t	 readb(uint32_t addr) { uint8_t	x = 0; pmread(handle, vcast(addr), &x, 1, 0); return x; }
 		uint16_t readus(uint32_t addr) { uint16_t	x = 0; pmread(handle, vcast(addr), &x, 2, 0); return x; }
 		uint32_t readui(uint32_t addr) { uint32_t	x = 0; pmread(handle, vcast(addr), &x, 4, 0); return x; }
-		uint64_t readull(uint32_t addr){ uint64_t	x = 0; pmread(handle, vcast(addr), &x, 8, 0); return x; }
-		char	 readc(uint32_t addr)  { char		x = 0; pmread(handle, vcast(addr), &x, 1, 0); return x; }
-		int16_t  reads(uint32_t addr)  { int16_t	x = 0; pmread(handle, vcast(addr), &x, 2, 0); return x; }
-		int32_t  readi(uint32_t addr)  { int32_t	x = 0; pmread(handle, vcast(addr), &x, 4, 0); return x; }
+		uint64_t readull(uint32_t addr) { uint64_t	x = 0; pmread(handle, vcast(addr), &x, 8, 0); return x; }
+		char	 readc(uint32_t addr) { char		x = 0; pmread(handle, vcast(addr), &x, 1, 0); return x; }
+		int16_t  reads(uint32_t addr) { int16_t	x = 0; pmread(handle, vcast(addr), &x, 2, 0); return x; }
+		int32_t  readi(uint32_t addr) { int32_t	x = 0; pmread(handle, vcast(addr), &x, 4, 0); return x; }
 		int64_t  readll(uint32_t addr) { int64_t	x = 0; pmread(handle, vcast(addr), &x, 8, 0); return x; }
-		float    readf(uint32_t addr)  { float		x = 0; pmread(handle, vcast(addr), &x, 4, 0); return x; }
-		double   readd(uint32_t addr)  { double		x = 0; pmread(handle, vcast(addr), &x, 8, 0); return x; }
-		void write(uint32_t addr, uint8_t* v, size_t count){ pmwrite(handle, vcast(addr), v, count, 0); }
-		void write(uint32_t addr, uint8_t v)  { pmwrite(handle, vcast(addr), &v, 1, 0); }
+		float    readf(uint32_t addr) { float		x = 0; pmread(handle, vcast(addr), &x, 4, 0); return x; }
+		double   readd(uint32_t addr) { double		x = 0; pmread(handle, vcast(addr), &x, 8, 0); return x; }
+		void write(uint32_t addr, uint8_t* v, size_t count) { pmwrite(handle, vcast(addr), v, count, 0); }
+		void write(uint32_t addr, uint8_t v) { pmwrite(handle, vcast(addr), &v, 1, 0); }
 		void write(uint32_t addr, uint16_t v) { pmwrite(handle, vcast(addr), &v, 2, 0); }
 		void write(uint32_t addr, uint32_t v) { pmwrite(handle, vcast(addr), &v, 4, 0); }
 		void write(uint32_t addr, uint64_t v) { pmwrite(handle, vcast(addr), &v, 8, 0); }
-		void write(uint32_t addr, char v)     { pmwrite(handle, vcast(addr), &v, 1, 0); }
-		void write(uint32_t addr, int16_t v)  { pmwrite(handle, vcast(addr), &v, 2, 0); }
-		void write(uint32_t addr, int32_t v)  { pmwrite(handle, vcast(addr), &v, 4, 0); }
-		void write(uint32_t addr, int64_t v)  { pmwrite(handle, vcast(addr), &v, 8, 0); }
-		void write(uint32_t addr, float v)	  { pmwrite(handle, vcast(addr), &v, 4, 0); }
-		void write(uint32_t addr, double v)	  { pmwrite(handle, vcast(addr), &v, 8, 0); }
-		void write(uint32_t addr, cbyte v)	  { pmwrite(handle, vcast(addr), v.bytes.data(), v.bytes.size(), 0); }
-		
+		void write(uint32_t addr, char v) { pmwrite(handle, vcast(addr), &v, 1, 0); }
+		void write(uint32_t addr, int16_t v) { pmwrite(handle, vcast(addr), &v, 2, 0); }
+		void write(uint32_t addr, int32_t v) { pmwrite(handle, vcast(addr), &v, 4, 0); }
+		void write(uint32_t addr, int64_t v) { pmwrite(handle, vcast(addr), &v, 8, 0); }
+		void write(uint32_t addr, float v) { pmwrite(handle, vcast(addr), &v, 4, 0); }
+		void write(uint32_t addr, double v) { pmwrite(handle, vcast(addr), &v, 8, 0); }
+		void write(uint32_t addr, cbyte v) { pmwrite(handle, vcast(addr), v.bytes.data(), v.bytes.size(), 0); }
+
 		std::string sreadb(uint32_t addr, size_t count) {
 			std::string str = "";
-			if (count != 0){
+			if (count != 0) {
 				uint8_t* x = new uint8_t[count];
 				pmread(handle, vcast(addr), x, count, 0);
-				for (int i=0; i<count; i++){
-					str+=convert::to_str(x[i]);
+				for (int i = 0; i < count; i++) {
+					str += convert::to_str(x[i]);
 				}
 				delete x;
 			}
@@ -254,13 +263,13 @@ namespace eyestep {
 
 		std::string readstring(uint32_t addr) {
 			uint32_t ptr = readui(addr);
-			if (!(isgood(ptr))) ptr=addr;
+			if (!(isgood(ptr))) ptr = addr;
 			std::string str = "";
 			char c[MAX_STR_READ];
 			pmread(handle, vcast(ptr), &c, MAX_STR_READ, 0);
-			int i=0;
-			while (i<MAX_STR_READ && c[i]>=0x20 && c[i]<=0x7E) {
-				str+=c[i++];
+			int i = 0;
+			while (i < MAX_STR_READ && c[i] >= 0x20 && c[i] <= 0x7E) {
+				str += c[i++];
 			}
 			return str;
 		}
@@ -291,28 +300,28 @@ namespace eyestep {
 
 		bool isepilogue(uint32_t address) {
 			uint8_t* b = readb(address, 2);
-			bool x =((b[0]==0x5D || b[0]==0x5E) && // pop ebp, or pop esi,
-					 (b[1]==0xC2 || b[1]==0xC3));  // with a retn or ret XX
+			bool x = ((b[0] == 0x5D || b[0] == 0x5E) && // pop ebp, or pop esi,
+				(b[1] == 0xC2 || b[1] == 0xC3));  // with a retn or ret XX
 			delete b;
 			return x;
 		}
 
 		bool isprologue(uint32_t address) {
-			if (!(address%16==0)) return false;
+			if (!(address % 16 == 0)) return false;
 			std::string s = sreadb(address, 3);
 			if (s == "558BEC") return true; // standard prologue
 			if (s == "568BF1") return true; // some prologues use ESI
 			return false;
 		}
 
-		uint32_t nextprologue(uint32_t address, direction d, bool aligned = true){
+		uint32_t nextprologue(uint32_t address, direction d, bool aligned = true) {
 			uint32_t at = address, count = 0;
 			// Skip this prologue if we're already at one
-			if (isprologue(at)){
+			if (isprologue(at)) {
 				if (d == behind) at -= 16;
 				if (d == ahead)  at += 16;
 			}
-			while (!isprologue(at) && !(at>base+base_size && readll(at) == 0 && readll(at+8) == 0)) {
+			while (!isprologue(at) && !(at > base + base_size && readll(at) == 0 && readll(at + 8) == 0)) {
 				if (count++ > 0xFFFF) break;
 				if (d == ahead)  if (!aligned) at++; else at += 16;
 				if (d == behind) if (!aligned) at--; else at -= 16;
@@ -320,14 +329,14 @@ namespace eyestep {
 			return at;
 		}
 
-		uint32_t nextepilogue(uint32_t address, direction d){
+		uint32_t nextepilogue(uint32_t address, direction d) {
 			uint32_t at = address, count = 0;
-			while (!isepilogue(at)){
+			while (!isepilogue(at)) {
 				if (count++ > 0xFFFF) break;
 				if (d == ahead)  at++;
 				if (d == behind) at--;
 			}
-			return (at+1); // Return the functions retn address
+			return (at + 1); // Return the functions retn address
 		}
 
 		int fsize(uint32_t func) {
@@ -342,7 +351,7 @@ namespace eyestep {
 		std::vector<uint32_t> getprologues(uint32_t func, direction d, int count) {
 			std::vector<uint32_t> result_list = std::vector<uint32_t>();
 			uint32_t addr = func, current = 0;
-			while (current < count){
+			while (current < count) {
 				addr = nextprologue(addr, d, true);
 				result_list.push_back(addr);
 				current++;
@@ -359,8 +368,8 @@ namespace eyestep {
 			uint32_t start = func;
 			uint32_t end = (start + fsize(func));
 			while (start < end) {
-				if (isepilogue(start)){
-					result_list.push_back(start+1);
+				if (isepilogue(start)) {
+					result_list.push_back(start + 1);
 				}
 				start++;
 			}
@@ -370,7 +379,7 @@ namespace eyestep {
 		short fretn(uint32_t func) {
 			for (uint32_t addr : getepilogues(func)) {
 				if (readb(addr) == 0xC2) {
-					return reads(addr+1);
+					return reads(addr + 1);
 				}
 			}
 			return 0;
@@ -379,10 +388,10 @@ namespace eyestep {
 		std::vector<uint32_t> getcalls(uint32_t func) {
 			std::vector<uint32_t> result_list = std::vector<uint32_t>();
 			uint32_t funcSize = fsize(func);
-			for (int i=0; i<funcSize; i++){
-				if (readb(func+i) == 0xE8){
-					uint32_t o = (func+i)+readui(func+i+1)+5;
-					if (o%16==0 && o>base && o<base+base_size){
+			for (int i = 0; i < funcSize; i++) {
+				if (readb(func + i) == 0xE8) {
+					uint32_t o = (func + i) + readui(func + i + 1) + 5;
+					if (o % 16 == 0 && o > base && o < base + base_size) {
 						result_list.push_back(o);
 					}
 				}
@@ -401,28 +410,34 @@ namespace eyestep {
 				if (i.flags & Fl_dest_disp32)	p = i.dest.disp32;
 				if (i.flags & Fl_src_imm32)		p = i.src.imm32;
 				if (i.flags & Fl_dest_imm32)	p = i.dest.imm32;
-				if (p != 0){
-					if (p%4==0 && p>base && p<base+base_size) result_list.push_back(p);
-					if (p%4==0 && p>base && p<base+base_size) result_list.push_back(p);
+				if (p != 0) {
+					if (p % 4 == 0 && p > base && p < base + base_size) result_list.push_back(p);
+					if (p % 4 == 0 && p > base && p < base + base_size) result_list.push_back(p);
 				}
 				start += i.len;
 			}
 			return result_list;
 		}
 
-		uint32_t nextcall(uint32_t func, direction d, bool loc = false){
+		uint32_t nextcall(uint32_t func, direction d, bool loc = false) {
 			uint32_t start = func;
+
+			// opcodes to ignore before the E8 byte for more
+			// accuracy on specifically the call instructions
+			uint8_t ignore[] = { 0x83, 0x89, 0x8B };
+
 			// Skip current call if we're already at one
-			if (readb(start) == 0xE8){
+			if (readb(start) == 0xE8) {
 				if (d == ahead)  start++;
 				if (d == behind) start--;
 			}
-			while (readb(start) != 0xE8){
+			while (!(readb(start) == 0xE8 && !find_in_table(ignore, readb(start - 1)))) {
 				if (d == ahead)  start++;
 				if (d == behind) start--;
 			}
-			uint32_t o = (start+readui(start+1)+5);
-			if (o%16==0 && o>base && o<base+base_size)
+
+			uint32_t o = (start + readui(start + 1) + 5);
+			if (o % 16 == 0 && o > base && o < base + base_size)
 				if (!loc)
 					return o;
 				else
@@ -430,28 +445,28 @@ namespace eyestep {
 			return 0;
 		}
 
-		uint32_t getcall(uint32_t addr){
-			uint32_t o = (addr+readui(addr+1)+5);
-			if (o%16==0 && o>base && o<base+base_size)
+		uint32_t getcall(uint32_t addr) {
+			uint32_t o = (addr + readui(addr + 1) + 5);
+			if (o % 16 == 0 && o > base && o < base + base_size)
 				return o;
 			return 0;
 		}
 
 		conv getconv(uint32_t func) {
-			conv c				= conv_cdecl;
-			uint32_t eof		= nextprologue(func, ahead);
-			uint32_t at			= func;
-			bool not_fastcall	= false;
-			bool neither		= false;
+			conv c = conv_cdecl;
+			uint32_t eof = nextprologue(func, ahead);
+			uint32_t at = func;
+			bool not_fastcall = false;
+			bool neither = false;
 			if (fretn(func))  c = conv_stdcall;
 
 			while (at < eof) {
 				inst i = eyestep::read(at);
 				at += i.len;
 				// if edx or ecx was pushed thats an instant indication
-				if (strcmp(i.opcode, "push") == 0){
-					if (i.src.r32 == ecx) neither		= true;
-					if (i.src.r32 == edx) not_fastcall	= true;
+				if (strcmp(i.opcode, "push") == 0) {
+					if (i.src.r32 == ecx) neither = true;
+					if (i.src.r32 == edx) not_fastcall = true;
 				}
 				// completely ignore a test instruction, with ecx,ecx or edx,edx
 				if (strcmp(i.opcode, "test") == 0) {
@@ -464,17 +479,18 @@ namespace eyestep {
 					if (i.src.r32 == ecx && i.dest.r32 == ecx) {
 						neither = true;
 						continue;
-					} else if (i.src.r32 == edx && i.dest.r32 == edx) {
+					}
+					else if (i.src.r32 == edx && i.dest.r32 == edx) {
 						not_fastcall = true;
 						continue;
 					}
 				}
-				if (i.flags & Fl_src_r32 || i.flags & Fl_src_rm32 || (i.flags & Fl_src_rxmm && i.src.pref && PRE_DWORD_PTR)){
+				if (i.flags & Fl_src_r32 || i.flags & Fl_src_rm32 || (i.flags & Fl_src_rxmm && i.src.pref && PRE_DWORD_PTR)) {
 					if (strcmp(i.opcode, "mov") == 0 || strcmp(i.opcode, "lea") == 0 ||
 						strcmp(i.opcode, "movzx") == 0 || strcmp(i.opcode, "or") == 0 ||
 						strcmp(i.opcode, "xor") == 0 || strcmp(i.opcode, "xorps") == 0 ||
 						strcmp(i.opcode, "movd") == 0 || strcmp(i.opcode, "cvt") != -1
-						){
+						) {
 						// because something like a mov ecx,edx
 						// can also throw things off
 						if (i.dest.r32 == edx && /*!neither && */!not_fastcall) {
@@ -494,14 +510,14 @@ namespace eyestep {
 				// now, we check if an instruction USES edx or ecx after
 				// all that has passed, now that it's determined whether
 				// it was or wasn't passed to this function
-				if (i.flags & Fl_dest_r32 || i.flags & Fl_dest_rm32){
-					if (i.dest.r32 == edx){
-						if (!neither && !not_fastcall){
+				if (i.flags & Fl_dest_r32 || i.flags & Fl_dest_rm32) {
+					if (i.dest.r32 == edx) {
+						if (!neither && !not_fastcall) {
 							return conv_fastcall;
 						}
 					}
-					if (i.dest.r32 == ecx){
-						if (c != conv_fastcall && !neither){
+					if (i.dest.r32 == ecx) {
+						if (c != conv_fastcall && !neither) {
 							c = conv_thiscall;
 						}
 					}
@@ -510,12 +526,12 @@ namespace eyestep {
 					}
 				}
 			}
-		
+
 			return c;
 		}
 
 		const char* getsconv(conv c) {
-			return (c==0)?"cdecl":(c==1)?"stdcall":(c==2)?"thiscall":(c==3)?"fastcall":"";
+			return (c == 0) ? "cdecl" : (c == 1) ? "stdcall" : (c == 2) ? "thiscall" : (c == 3) ? "fastcall" : "";
 		}
 
 		// go from [start] location, and search for a call to "func"
@@ -528,59 +544,61 @@ namespace eyestep {
 			while (getcall(at) != func) {
 				uint32_t old_at = at;
 				at = nextcall(at, d, true);
-				if (at == 0) if (d==behind) at = --old_at; else at = ++old_at;
+				if (at == 0) if (d == behind) at = --old_at; else at = ++old_at;
 			}
 			if (!parentfunc) return at;
 			return nextprologue(at, behind, false);
 		}
 
 		std::vector<uint32_t> __fastcall scan(const char* aob, const char* _mask, uint32_t begin = 0, uint32_t to = 0, int stopAtResult = 0) {
-			uint32_t size=0, at=0, start=begin, end=to;
-			if (!(start && end)){
+			uint32_t size = 0, at = 0, start = begin, end = to;
+			if (!(start && end)) {
 				start = base;
-				end = base+base_size;
+				end = base + base_size;
 			}
 
-			uint32_t chunksize		= ((end-start)<(64*64*64))?(end-start):(64*64*64);
-			uint8_t* buffer			= new uint8_t[chunksize];
-			char match				= 1;
-			char wildchar			= 'x'; // 'x' means it can be any byte; put '.' for the rest
+			uint32_t chunksize = ((end - start) < (64 * 64 * 64)) ? (end - start) : (64 * 64 * 64);
+			uint8_t* buffer = new uint8_t[chunksize];
+			char match = 1;
+			char wildchar = 'x'; // 'x' means it can be any byte; put '.' for the rest
 
 			std::vector<uint32_t>	results_list = std::vector<uint32_t>();
 			std::vector<uint8_t>	bytes = cbyte(aob).bytes;
-			size					= bytes.size();
+			size = bytes.size();
 
 			// create mask for AOB if string is empty
 			char mask[256];
 			mask[0] = '\0';
-			if (lstrlenA(_mask) == 0){
-				for (int i=0; i<size; i++){
+			if (lstrlenA(_mask) == 0) {
+				for (int i = 0; i < size; i++) {
 					strcat_s(mask, ".");
 				}
-			} else {
+			}
+			else {
 				strcpy_s(mask, _mask);
 			}
 
 			uint32_t padding = (size - 1);
-			while (start < end){
+			while (start < end) {
 				bool read = pmread(handle, vcast(start), buffer, chunksize, 0);
-				if (read){
+				if (read) {
 					__asm push edi
 					__asm xor edi, edi
 					__asm jmp L2
-				L1: __asm inc edi
-					__asm mov at, edi
-					match=1;
-					for (uint32_t x=0; x<size; x++)
-					if (buffer[at+x]!=bytes.at(x) && mask[x]!=wildchar)
-					match=0;
-					if (match) results_list.push_back(start+at);
-				L2:	__asm cmp edi, chunksize
-					__asm jb L1
-					__asm sub edi, padding
-					__asm add start, edi
-					__asm pop edi
-				} else {
+					L1 : __asm inc edi
+						__asm mov at, edi
+						 match = 1;
+						 for (uint32_t x = 0; x < size; x++)
+							 if (buffer[at + x] != bytes.at(x) && mask[x] != wildchar)
+								 match = 0;
+						 if (match) results_list.push_back(start + at);
+					 L2:	__asm cmp edi, chunksize
+						 __asm jb L1
+							__asm sub edi, padding
+							__asm add start, edi
+							__asm pop edi
+				}
+				else {
 					printf("[!] Failed to read process region [0x%08X]\n", start);
 					start += chunksize;
 					continue;
@@ -593,7 +611,7 @@ namespace eyestep {
 			return results_list;
 		}
 
-		std::vector<uint32_t> __fastcall scanpointer(uint32_t address){
+		std::vector<uint32_t> __fastcall scanpointer(uint32_t address) {
 			return scan(convert::to_bytes(address).c_str(), "....");
 		}
 
@@ -602,8 +620,8 @@ namespace eyestep {
 		// around to a bypass for it; thats why eyecrawl never worked as a DLL
 		std::vector<uint32_t> __fastcall scanxrefs(const char* str, int result_number = 0) {
 			char* mask = new char[lstrlenA(str)];
-			for (int i=0; i<lstrlenA(str); i++){
-				mask[i]='.';
+			for (int i = 0; i < lstrlenA(str); i++) {
+				mask[i] = '.';
 			}
 			std::vector<uint32_t>strlocs = scan(convert::to_bytes(str).c_str(), mask);
 			delete mask;
@@ -612,27 +630,27 @@ namespace eyestep {
 		}
 
 		// xrefs made to a function
-		std::vector<uint32_t> __fastcall scanxrefs(uint32_t func, uint32_t begin = 0, uint32_t to = 0){
-			uint32_t size=0, at=0, start=begin, end=to;
-			if (!(start && end)){
+		std::vector<uint32_t> __fastcall scanxrefs(uint32_t func, uint32_t begin = 0, uint32_t to = 0) {
+			uint32_t size = 0, at = 0, start = begin, end = to;
+			if (!(start && end)) {
 				start = eyestep::base;
 				end = eyestep::base + eyestep::base_size;
 			}
 
-			uint32_t chunksize		= ((end-begin)<(64*64*32))?(end-begin):(64*64*32);
-			uint8_t* buffer			= new uint8_t[chunksize];
-			bool found				= false;
+			uint32_t chunksize = ((end - begin) < (64 * 64 * 32)) ? (end - begin) : (64 * 64 * 32);
+			uint8_t* buffer = new uint8_t[chunksize];
+			bool found = false;
 			std::vector<uint32_t>	xrefs = std::vector<uint32_t>();
 
-			while (start < end && start < base + base_size){
+			while (start < end && start < base + base_size) {
 				bool read = pmread(handle, vcast(start), buffer, chunksize, 0);
-				if (read){
-					for (int i=0; i<chunksize; i++){
-						if (readui(start+i) == 0xE8){ // call instruction
+				if (read) {
+					for (int i = 0; i < chunksize; i++) {
+						if (readui(start + i) == 0xE8) { // call instruction
 							// calculate relative offset
-							uint32_t o = readui(start+i+1);
-							if ((start+i+5+o) == func){
-								xrefs.push_back(start+i);
+							uint32_t o = readui(start + i + 1);
+							if ((start + i + 5 + o) == func) {
+								xrefs.push_back(start + i);
 								found = true;
 								break;
 							}
@@ -650,114 +668,116 @@ namespace eyestep {
 		// places a hook that removes itself, after
 		// reading an offset of a register
 		uint32_t debug(uint32_t address, reg_32 r32, int offset = 0) {
-			uint32_t size=5, nop, isize=0, value=0, at=0;
-			uint32_t code_loc	= reinterpret_cast<uint32_t>(VirtualAllocEx(handle, nullptr, 64, 0x1000, 0x40));
-			uint32_t trace_loc	= reinterpret_cast<uint32_t>(VirtualAllocEx(handle, nullptr, 8, 0x1000, 0x4));
-			uint32_t hit_loc	= trace_loc + 4;
+			uint32_t size = 5, nop, isize = 0, value = 0, at = 0;
+			uint32_t code_loc = reinterpret_cast<uint32_t>(VirtualAllocEx(handle, nullptr, 64, 0x1000, 0x40));
+			uint32_t trace_loc = reinterpret_cast<uint32_t>(VirtualAllocEx(handle, nullptr, 8, 0x1000, 0x4));
+			uint32_t hit_loc = trace_loc + 4;
 
 			// Interpret size of original instruction(s)
 			inst i = read(address);
-			while (i.address<(address+size)){
+			while (i.address < (address + size)) {
 				isize += i.len;
-				nop = ((i.address+i.len)-(address+size));
-				i = read(address+isize);
+				nop = ((i.address + i.len) - (address + size));
+				i = read(address + isize);
 			}
 
 			// store original bytes
-			uint8_t* old_bytes = new uint8_t[size+nop];
-			pmread(handle, vcast(address), old_bytes, size+nop, 0);
+			uint8_t* old_bytes = new uint8_t[size + nop];
+			pmread(handle, vcast(address), old_bytes, size + nop, 0);
 
 			// Make a JMP from the address to our own code
 			uint8_t* code_data = new uint8_t[64];
 			uint8_t* inject = new uint8_t[5];
 			*(uint8_t*)(inject) = 0xE9;
-			*(uint32_t*)(inject+1) = (code_loc-(address+5));
+			*(uint32_t*)(inject + 1) = (code_loc - (address + 5));
 
-			if (offset == 0){ // simply place one instruction to capture 
+			if (offset == 0) { // simply place one instruction to capture 
 				// the value of the register to our readout location
-				*(uint8_t*)(code_data+at++) = (0x50+r32); // push (r32)
+				*(uint8_t*)(code_data + at++) = (0x50 + r32); // push (r32)
 				switch (r32) {
-					case reg_32::eax:
-						*(uint8_t*)(code_data+at++) = 0xA3;
-						break;
-					default:
-						*(uint8_t*)(code_data+at++) = 0x89; // ecx-edi (0xD,0x15,0x1D,0x25,0x2D . . .)
-						*(uint8_t*)(code_data+at++) = (0x5+(r32*8));
+				case reg_32::eax:
+					*(uint8_t*)(code_data + at++) = 0xA3;
+					break;
+				default:
+					*(uint8_t*)(code_data + at++) = 0x89; // ecx-edi (0xD,0x15,0x1D,0x25,0x2D . . .)
+					*(uint8_t*)(code_data + at++) = (0x5 + (r32 * 8));
 					break;
 				}
 				// trace the register to our location
-				*(uint32_t*)(code_data+at)	= trace_loc;at += 4;
+				*(uint32_t*)(code_data + at) = trace_loc; at += 4;
 				// hit detected
-				*(uint8_t*)(code_data+at++)	= 0xC7;
-				*(uint8_t*)(code_data+at++)	= 0x5;
-				*(uint32_t*)(code_data+at)	= hit_loc;	at += 4;
-				*(uint32_t*)(code_data+at)	= 1;		at += 4;
+				*(uint8_t*)(code_data + at++) = 0xC7;
+				*(uint8_t*)(code_data + at++) = 0x5;
+				*(uint32_t*)(code_data + at) = hit_loc;	at += 4;
+				*(uint32_t*)(code_data + at) = 1;		at += 4;
 				// pop (r32)
-				*(uint8_t*)(code_data+at++)	= (0x58+r32);
-			} else { // or, if we want an offset of a register ...
-				// move the offset into EAX and show EAX
-				*(uint8_t*)(code_data+at++) = 0x50; // push eax
-				*(uint8_t*)(code_data+at++) = 0x8B;
-				if (offset > UCHAR_MAX){	// 32 bit offset
+				*(uint8_t*)(code_data + at++) = (0x58 + r32);
+			}
+			else { // or, if we want an offset of a register ...
+			 // move the offset into EAX and show EAX
+				*(uint8_t*)(code_data + at++) = 0x50; // push eax
+				*(uint8_t*)(code_data + at++) = 0x8B;
+				if (offset > UCHAR_MAX) {	// 32 bit offset
 					if (r32 != reg_32::esp)
-						*(uint8_t*)(code_data+at++) = (0x80+r32);
+						*(uint8_t*)(code_data + at++) = (0x80 + r32);
 					else {
-						*(uint8_t*)(code_data+at++) = 0x84;
-						*(uint8_t*)(code_data+at++) = 0x24;
+						*(uint8_t*)(code_data + at++) = 0x84;
+						*(uint8_t*)(code_data + at++) = 0x24;
 					}
-					*(uint32_t*)(code_data+at++) = offset;
-				} else {					// 8 bit offset
+					*(uint32_t*)(code_data + at++) = offset;
+				}
+				else {					// 8 bit offset
 					if (r32 != reg_32::esp)
-						*(uint8_t*)(code_data+at++) = (0x40+r32);
+						*(uint8_t*)(code_data + at++) = (0x40 + r32);
 					else {
-						*(uint8_t*)(code_data+at++) = 0x44;
-						*(uint8_t*)(code_data+at++) = 0x24;
+						*(uint8_t*)(code_data + at++) = 0x44;
+						*(uint8_t*)(code_data + at++) = 0x24;
 					}
-					*(uint8_t*)(code_data+at++) = offset;
+					*(uint8_t*)(code_data + at++) = offset;
 				}
 				// Trace register to our trace location
-				*(uint8_t*)(code_data+at++)	= 0xA3;
-				*(uint32_t*)(code_data+at)	= trace_loc;at += 4;
+				*(uint8_t*)(code_data + at++) = 0xA3;
+				*(uint32_t*)(code_data + at) = trace_loc; at += 4;
 				// hit detected
-				*(uint8_t*)(code_data+at++)	= 0xC7;
-				*(uint8_t*)(code_data+at++)	= 0x5;
-				*(uint32_t*)(code_data+at)	= hit_loc;	at += 4;
-				*(uint32_t*)(code_data+at)	= 1;		at += 4;
+				*(uint8_t*)(code_data + at++) = 0xC7;
+				*(uint8_t*)(code_data + at++) = 0x5;
+				*(uint32_t*)(code_data + at) = hit_loc;	at += 4;
+				*(uint32_t*)(code_data + at) = 1;		at += 4;
 				// pop eax
-				*(uint8_t*)(code_data +at++) = 0x58;
+				*(uint8_t*)(code_data + at++) = 0x58;
 			}
 
 			// Put overwritten bytes back (full instruction(s))
 			pmwrite(handle, vcast(code_loc), code_data, at, 0);
-			pmwrite(handle, vcast(code_loc+at), old_bytes, size+nop, 0);
-			at += (size+nop);
+			pmwrite(handle, vcast(code_loc + at), old_bytes, size + nop, 0);
+			at += (size + nop);
 
 			// Place our JMP back
 			uint8_t* jmp_back = new uint8_t[5];
-			*(uint8_t*)(jmp_back+at) = 0xE9;
-			*(uint32_t*)(jmp_back+at+1)  = ((address+5)-(code_loc+at+5));
-			pmwrite(handle, vcast(code_loc+at), jmp_back, 5, 0);
+			*(uint8_t*)(jmp_back + at) = 0xE9;
+			*(uint32_t*)(jmp_back + at + 1) = ((address + 5) - (code_loc + at + 5));
+			pmwrite(handle, vcast(code_loc + at), jmp_back, 5, 0);
 			delete jmp_back;
 			delete code_data;
 
-			edit::unprotect(address, size+nop);
+			edit::unprotect(address, size + nop);
 			// Inject the JMP to our own code
 			pmwrite(handle, vcast(address), inject, size, 0);
-			for (int i=0; i<nop; i++){
-				write(address+size+i, static_cast<uint8_t>(0x90));
+			for (int i = 0; i < nop; i++) {
+				write(address + size + i, static_cast<uint8_t>(0x90));
 			}
 			edit::restore();
 			delete inject;
 
 			// wait for our masked value to be modified
 			// this means something wrote to our location
-			uint32_t d=0;
-			while (readb(hit_loc) != 1){
-				Sleep(1); if (d++>0xFFFF) break;
-			} value=readui(trace_loc);
+			uint32_t d = 0;
+			while (readb(hit_loc) != 1) {
+				Sleep(1); if (d++ > 0xFFFF) break;
+			} value = readui(trace_loc);
 
-			edit::unprotect(address, size+nop);
-			pmwrite(handle, vcast(address), old_bytes, size+nop, 0);
+			edit::unprotect(address, size + nop);
+			pmwrite(handle, vcast(address), old_bytes, size + nop, 0);
 			edit::restore();
 			delete old_bytes;
 
@@ -795,25 +815,25 @@ namespace eyestep {
 			void restore() { restore(last_unprotect); }
 		}
 
-		
+
 
 		std::string readstring(uint32_t addr) {
 			uint32_t ptr = addr;
 			std::string str = "";
-			if (isgood(ptr)){
+			if (isgood(ptr)) {
 				if (isgood(*(uint32_t*)(ptr))) {
 					ptr = *(uint32_t*)ptr;
 				}
 				char c[MAX_STR_READ];
 				memcpy(&c, vcast(ptr), MAX_STR_READ);
 				int i = 0;
-				while (i < MAX_STR_READ && c[i] >= 0x20 && c[i] <= 0x7E){
+				while (i < MAX_STR_READ && c[i] >= 0x20 && c[i] <= 0x7E) {
 					str += c[i++];
 				}
 			}
 			return str;
 		}
-		
+
 		bool isprologue(uint32_t address) {
 			uint8_t	b[3];
 			memcpy(&b, vcast(address), 3);
@@ -836,18 +856,18 @@ namespace eyestep {
 		bool isepilogue(uint32_t address) {
 			uint8_t	b[2];
 			memcpy(&b, vcast(address), 2);
-			return ((b[0]==0x5D || b[0]==0x5E) && // pop ebp, or pop esi,
-					(b[1]==0xC2 || b[1]==0xC3));  // with a retn or ret XX
+			return ((b[0] == 0x5D || b[0] == 0x5E) && // pop ebp, or pop esi,
+				(b[1] == 0xC2 || b[1] == 0xC3));  // with a retn or ret XX
 		}
 
-		uint32_t nextprologue(uint32_t address, direction d, bool aligned = true){
+		uint32_t nextprologue(uint32_t address, direction d, bool aligned = true) {
 			uint32_t at = address, count = 0;
 			// Skip this prologue if we're already at one
-			if (isprologue(at)){
+			if (isprologue(at)) {
 				if (d == behind) at -= 16;
 				if (d == ahead)  at += 16;
 			}
-			while (!isprologue(at) && !(at>base+base_size && *(uint64_t*)at == 0 && *(uint64_t*)(at+8) == 0)){
+			while (!isprologue(at) && !(at > base + base_size && *(uint64_t*)at == 0 && *(uint64_t*)(at + 8) == 0)) {
 				if (count++ > 0xFFFF) break;
 				if (d == ahead)  if (!aligned) at++; else at += 16;
 				if (d == behind) if (!aligned) at--; else at -= 16;
@@ -855,14 +875,14 @@ namespace eyestep {
 			return at;
 		}
 
-		uint32_t nextepilogue(uint32_t address, direction d){
+		uint32_t nextepilogue(uint32_t address, direction d) {
 			uint32_t at = address, count = 0;
-			while (!isepilogue(at)){
+			while (!isepilogue(at)) {
 				if (count++ > 0xFFFF) break;
 				if (d == ahead)  at++;
 				if (d == behind) at--;
 			}
-			return (at+1); // Return the functions retn address
+			return (at + 1); // Return the functions retn address
 		}
 
 		int fsize(uint32_t func) {
@@ -877,7 +897,7 @@ namespace eyestep {
 		std::vector<uint32_t> getprologues(uint32_t func, direction d, int count) {
 			std::vector<uint32_t> result_list = std::vector<uint32_t>();
 			uint32_t addr = func, current = 0;
-			while (current < count){
+			while (current < count) {
 				addr = nextprologue(addr, d, true);
 				result_list.push_back(addr);
 				current++;
@@ -894,8 +914,8 @@ namespace eyestep {
 			uint32_t start = func;
 			uint32_t end = (start + fsize(func));
 			while (start < end) {
-				if (isepilogue(start)){
-					result_list.push_back(start+1);
+				if (isepilogue(start)) {
+					result_list.push_back(start + 1);
 				}
 				start++;
 			}
@@ -905,7 +925,7 @@ namespace eyestep {
 		short fretn(uint32_t func) {
 			for (uint32_t addr : getepilogues(func)) {
 				if (*(uint8_t*)addr == 0xC2) {
-					return *(short*)(addr+1);
+					return *(short*)(addr + 1);
 				}
 			}
 			return 0;
@@ -916,9 +936,9 @@ namespace eyestep {
 			uint32_t start = func;
 			uint32_t end = (func + fsize(func));
 			while (start < end) {
-				if (*(uint8_t*)start == 0xE8){
-					uint32_t o = (start+*(uint32_t*)(start+1)+5);
-					if (o%16==0 && o>base && o<base+base_size){
+				if (*(uint8_t*)start == 0xE8) {
+					uint32_t o = (start + *(uint32_t*)(start + 1) + 5);
+					if (o % 16 == 0 && o > base && o < base + base_size) {
 						result_list.push_back(o);
 					}
 				}
@@ -938,25 +958,18 @@ namespace eyestep {
 				if (i.flags & Fl_dest_disp32)	p = i.dest.disp32;
 				if (i.flags & Fl_src_imm32)		p = i.src.imm32;
 				if (i.flags & Fl_dest_imm32)	p = i.dest.imm32;
-				if (p != 0){
-					if (p%4==0 && p>base && p<base+base_size) result_list.push_back(p);
-					if (p%4==0 && p>base && p<base+base_size) result_list.push_back(p);
+				if (p != 0) {
+					if (p % 4 == 0 && p > base && p < base + base_size) result_list.push_back(p);
+					if (p % 4 == 0 && p > base && p < base + base_size) result_list.push_back(p);
 				}
 				start += i.len;
 			}
 			return result_list;
 		}
 
-		bool find_in_table(uint8_t* t, uint8_t b) {
-			for (int i = 0; i < sizeof(t) / sizeof(uint8_t); i++) {
-				if (b == t[i]) {
-					return true;
-				}
-			}
-			return false;
-		};
 
-		uint32_t nextcall(uint32_t func, direction d, bool loc = false){
+
+		uint32_t nextcall(uint32_t func, direction d, bool loc = false) {
 			uint32_t start = func;
 
 			// opcodes to ignore before the E8 byte for more
@@ -964,7 +977,7 @@ namespace eyestep {
 			uint8_t ignore[] = { 0x83, 0x89, 0x8B };
 
 			// Skip current call if we're already at one
-			if (*(uint8_t*)start == 0xE8){
+			if (*(uint8_t*)start == 0xE8) {
 				if (d == ahead)  start++;
 				if (d == behind) start--;
 			}
@@ -972,8 +985,8 @@ namespace eyestep {
 				if (d == ahead)  start++;
 				if (d == behind) start--;
 			}
-			uint32_t o = (start+*(uint32_t*)(start+1)+5);
-			if (o%16==0 && o>base && o<base+base_size)
+			uint32_t o = (start + *(uint32_t*)(start + 1) + 5);
+			if (o % 16 == 0 && o > base && o < base + base_size)
 				if (!loc)
 					return o;
 				else
@@ -981,9 +994,9 @@ namespace eyestep {
 			return 0;
 		}
 
-		uint32_t getcall(uint32_t addr){
-			uint32_t o = (addr+*(uint32_t*)(addr+1)+5);
-			if (o%16==0 && o>base && o<base+base_size)
+		uint32_t getcall(uint32_t addr) {
+			uint32_t o = (addr + *(uint32_t*)(addr + 1) + 5);
+			if (o % 16 == 0 && o > base && o < base + base_size)
 				return o;
 			return 0;
 		}
@@ -993,67 +1006,70 @@ namespace eyestep {
 			while (getcall(at) != func) {
 				uint32_t old_at = at;
 				at = nextcall(at, d, true);
-				if (at == 0) if (d==behind) at = --old_at; else at = ++old_at;
+				if (at == 0) if (d == behind) at = --old_at; else at = ++old_at;
 			}
 			if (!parentfunc) return at;
 			return nextprologue(at, behind, false);
 		}
 
 		std::vector<uint32_t> __fastcall scan(const char* aob, const char* _mask, uint32_t begin = 0, uint32_t to = 0, int stopAtResult = 0) {
-			uint32_t size=0, at=0, start=begin, end=to;
-			if (!(start && end)){
+			uint32_t size = 0, at = 0, start = begin, end = to;
+			if (!(start && end)) {
 				start = eyestep::base;
-				end = eyestep::base+eyestep::base_size;
+				end = eyestep::base + eyestep::base_size;
 			}
 
-			uint32_t chunksize		= ((end-start)<(64*64*32))?(end-start):(64*64*32);
-			uint8_t* buffer			= new uint8_t[chunksize];
-			char match				= 1;
-			char wildchar			= 'x'; // 'x' means it can be any byte; put '.' for the rest
+			uint32_t chunksize = ((end - start) < (64 * 64 * 32)) ? (end - start) : (64 * 64 * 32);
+			uint8_t* buffer = new uint8_t[chunksize];
+			char match = 1;
+			char wildchar = 'x'; // 'x' means it can be any byte; put '.' for the rest
 
 			std::vector<uint32_t>	results_list = std::vector<uint32_t>();
 			std::vector<uint8_t>	bytes = cbyte(aob).bytes;
-			size					= bytes.size();
+			size = bytes.size();
 
 			// create mask for AOB if string is empty
 			char mask[256];
 			mask[0] = '\0';
-			if (lstrlenA(_mask) == 0){
-				for (int i=0; i<size; i++)
+			if (lstrlenA(_mask) == 0) {
+				for (int i = 0; i < size; i++)
 					strcat(mask, ".");
-			} else strcpy(mask, _mask);
+			}
+			else strcpy(mask, _mask);
 
 			uint32_t padding = (size - 1);
 			// start scanning...
 			//SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_HIGHEST);
-			while (start < end){ try {
+			while (start < end) {
+				try {
 					memcpy(buffer, vcast(start), chunksize);
-				} catch (std::exception e){ printf("Exception: %s\n", e.what()); }
+				}
+				catch (std::exception e) { printf("Exception: %s\n", e.what()); }
 				__asm push edi
 				__asm xor edi, edi
 				__asm jmp L2
-			L1: __asm inc edi
-				__asm mov at, edi
-				match=1;
-				for (uint32_t x=0; x<size; x++)
-				if (buffer[at+x]!=bytes[x] && mask[x]!=wildchar)
-				match=0;
-				if (match) results_list.push_back(start+at);
-			L2:	__asm cmp edi, chunksize
-				__asm jb L1
-				__asm sub edi, padding
-				__asm add start, edi
-				__asm pop edi
-				if (stopAtResult != 0 && results_list.size() >= stopAtResult) {
-					break;
-				}
+				L1 : __asm inc edi
+					__asm mov at, edi
+					 match = 1;
+					 for (uint32_t x = 0; x < size; x++)
+						 if (buffer[at + x] != bytes[x] && mask[x] != wildchar)
+							 match = 0;
+					 if (match) results_list.push_back(start + at);
+				 L2:	__asm cmp edi, chunksize
+					 __asm jb L1
+						__asm sub edi, padding
+						__asm add start, edi
+						__asm pop edi
+						if (stopAtResult != 0 && results_list.size() >= stopAtResult) {
+							break;
+						}
 			}
 			//SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_NORMAL);
 			free(buffer);
 			return results_list;
 		}
 
-		std::vector<uint32_t> __fastcall scanpointer(uint32_t address){
+		std::vector<uint32_t> __fastcall scanpointer(uint32_t address) {
 			return scan(convert::to_bytes(address).c_str(), "....");
 		}
 
@@ -1062,8 +1078,8 @@ namespace eyestep {
 		// around to a bypass for it; thats why eyecrawl never worked as a DLL
 		std::vector<uint32_t> __fastcall scanxrefs(const char* str, int result_number = 0) {
 			char* mask = new char[lstrlenA(str)];
-			for (int i=0; i<lstrlenA(str); i++){
-				mask[i]='.';
+			for (int i = 0; i < lstrlenA(str); i++) {
+				mask[i] = '.';
 			}
 			std::vector<uint32_t>strlocs = scan(convert::to_bytes(str).c_str(), mask);
 			free(mask);
@@ -1072,29 +1088,29 @@ namespace eyestep {
 		}
 
 		// xrefs made to a function
-		std::vector<uint32_t> __fastcall scanxrefs(uint32_t func, uint32_t begin = 0, uint32_t to = 0){
-			uint32_t size=0, at=0, start=begin, end=to;
-			if (!(start && end)){
+		std::vector<uint32_t> __fastcall scanxrefs(uint32_t func, uint32_t begin = 0, uint32_t to = 0) {
+			uint32_t size = 0, at = 0, start = begin, end = to;
+			if (!(start && end)) {
 				start = eyestep::base;
 				end = eyestep::base + eyestep::base_size;
 			}
 
-			uint32_t chunksize		= ((end-begin)<(64*64*32))?(end-begin):(64*64*32);
-			uint8_t* buffer			= new uint8_t[chunksize];
-			bool found				= false;
+			uint32_t chunksize = ((end - begin) < (64 * 64 * 32)) ? (end - begin) : (64 * 64 * 32);
+			uint8_t* buffer = new uint8_t[chunksize];
+			bool found = false;
 			std::vector<uint32_t>	xrefs = std::vector<uint32_t>();
 
 			//SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_HIGHEST);
-			while (start < end && start < base + base_size){
+			while (start < end && start < base + base_size) {
 				bool read = true;
 				memcpy(buffer, vcast(start), chunksize);
-				if (read){
-					for (int i=0; i<chunksize; i++){
-						if (*(uint8_t*)(start+i) == 0xE8){ // call instruction
+				if (read) {
+					for (int i = 0; i < chunksize; i++) {
+						if (*(uint8_t*)(start + i) == 0xE8) { // call instruction
 							// calculate relative offset
-							uint32_t o = *(uint32_t*)(start+i+1);
-							if ((start+i+5+o) == func){
-								xrefs.push_back(start+i);
+							uint32_t o = *(uint32_t*)(start + i + 1);
+							if ((start + i + 5 + o) == func) {
+								xrefs.push_back(start + i);
 								found = true;
 								break;
 							}
@@ -1115,110 +1131,112 @@ namespace eyestep {
 		// places a hook that removes itself, after
 		// reading an offset of a register
 		uint32_t debug(uint32_t address, reg_32 r32, int offset = 0) {
-			uint32_t size=5, nop, isize=0, value=0, at=0;
-			uint32_t code_loc	= reinterpret_cast<uint32_t>(VirtualAlloc(nullptr, 64, 0x1000, 0x40));
-			uint32_t trace_loc	= reinterpret_cast<uint32_t>(VirtualAlloc(nullptr, 8, 0x1000, 0x4));
-			uint32_t hit_loc	= trace_loc + 4;
+			uint32_t size = 5, nop, isize = 0, value = 0, at = 0;
+			uint32_t code_loc = reinterpret_cast<uint32_t>(VirtualAlloc(nullptr, 64, 0x1000, 0x40));
+			uint32_t trace_loc = reinterpret_cast<uint32_t>(VirtualAlloc(nullptr, 8, 0x1000, 0x4));
+			uint32_t hit_loc = trace_loc + 4;
 
 			// Interpret size of original instruction(s)
 			inst i = read(address);
-			while (i.address<(address+size)){
+			while (i.address < (address + size)) {
 				isize += i.len;
-				nop = ((i.address+i.len)-(address+size));
-				i = read(address+isize);
+				nop = ((i.address + i.len) - (address + size));
+				i = read(address + isize);
 			}
 
 			// store original bytes
-			uint8_t* old_bytes = new uint8_t[size+nop];
-			memcpy(old_bytes, vcast(address), size+nop);
+			uint8_t* old_bytes = new uint8_t[size + nop];
+			memcpy(old_bytes, vcast(address), size + nop);
 
 			// Make a JMP from the address to our own code
 			uint8_t* inject = new uint8_t[5];
 			*(uint8_t*)(inject) = 0xE9;
-			*(uint32_t*)(inject+1) = (code_loc-(address+5));
+			*(uint32_t*)(inject + 1) = (code_loc - (address + 5));
 
-			if (offset == 0){ // simply place one instruction to capture 
+			if (offset == 0) { // simply place one instruction to capture 
 				// the value of the register to our readout location
-				*(uint8_t*)(code_loc+at++) = (0x50+r32); // push (r32)
+				*(uint8_t*)(code_loc + at++) = (0x50 + r32); // push (r32)
 				switch (r32) {
-					case reg_32::eax:
-						*(uint8_t*)(code_loc+at++) = 0xA3;
-						break;
-					default:
-						*(uint8_t*)(code_loc+at++) = 0x89; // ecx-edi (0xD,0x15,0x1D,0x25,0x2D . . .)
-						*(uint8_t*)(code_loc+at++) = (0x5+(r32*8));
+				case reg_32::eax:
+					*(uint8_t*)(code_loc + at++) = 0xA3;
+					break;
+				default:
+					*(uint8_t*)(code_loc + at++) = 0x89; // ecx-edi (0xD,0x15,0x1D,0x25,0x2D . . .)
+					*(uint8_t*)(code_loc + at++) = (0x5 + (r32 * 8));
 					break;
 				}
 				// trace the register to our location
-				*(uint32_t*)(code_loc+at)	= trace_loc;at += 4;
+				*(uint32_t*)(code_loc + at) = trace_loc; at += 4;
 				// hit detected
-				*(uint8_t*)(code_loc+at++)	= 0xC7;
-				*(uint8_t*)(code_loc+at++)	= 0x5;
-				*(uint32_t*)(code_loc+at)	= hit_loc;	at += 4;
-				*(uint32_t*)(code_loc+at)	= 1;		at += 4;
+				*(uint8_t*)(code_loc + at++) = 0xC7;
+				*(uint8_t*)(code_loc + at++) = 0x5;
+				*(uint32_t*)(code_loc + at) = hit_loc;	at += 4;
+				*(uint32_t*)(code_loc + at) = 1;		at += 4;
 				// pop (r32)
-				*(uint8_t*)(code_loc+at++)	= (0x58+r32);
-			} else { // or, if we want an offset of a register ...
-				// move the offset into EAX and show EAX
-				*(uint8_t*)(code_loc+at++) = 0x50; // push eax
-				*(uint8_t*)(code_loc+at++) = 0x8B;
-				if (offset > UCHAR_MAX){	// 32 bit offset
+				*(uint8_t*)(code_loc + at++) = (0x58 + r32);
+			}
+			else { // or, if we want an offset of a register ...
+			 // move the offset into EAX and show EAX
+				*(uint8_t*)(code_loc + at++) = 0x50; // push eax
+				*(uint8_t*)(code_loc + at++) = 0x8B;
+				if (offset > UCHAR_MAX) {	// 32 bit offset
 					if (r32 != reg_32::esp)
-						*(uint8_t*)(code_loc+at++) = (0x80+r32);
+						*(uint8_t*)(code_loc + at++) = (0x80 + r32);
 					else {
-						*(uint8_t*)(code_loc+at++) = 0x84;
-						*(uint8_t*)(code_loc+at++) = 0x24;
+						*(uint8_t*)(code_loc + at++) = 0x84;
+						*(uint8_t*)(code_loc + at++) = 0x24;
 					}
-					*(uint32_t*)(code_loc+at++) = offset;
-				} else {					// 8 bit offset
+					*(uint32_t*)(code_loc + at++) = offset;
+				}
+				else {					// 8 bit offset
 					if (r32 != reg_32::esp)
-						*(uint8_t*)(code_loc+at++) = (0x40+r32);
+						*(uint8_t*)(code_loc + at++) = (0x40 + r32);
 					else {
-						*(uint8_t*)(code_loc+at++) = 0x44;
-						*(uint8_t*)(code_loc+at++) = 0x24;
+						*(uint8_t*)(code_loc + at++) = 0x44;
+						*(uint8_t*)(code_loc + at++) = 0x24;
 					}
-					*(uint8_t*)(code_loc+at++) = offset;
+					*(uint8_t*)(code_loc + at++) = offset;
 				}
 				// Trace register to our trace location
-				*(uint8_t*)(code_loc+at++)	= 0xA3;
-				*(uint32_t*)(code_loc+at)	= trace_loc;at += 4;
+				*(uint8_t*)(code_loc + at++) = 0xA3;
+				*(uint32_t*)(code_loc + at) = trace_loc; at += 4;
 				// hit detected
-				*(uint8_t*)(code_loc+at++)	= 0xC7;
-				*(uint8_t*)(code_loc+at++)	= 0x5;
-				*(uint32_t*)(code_loc+at)	= hit_loc;	at += 4;
-				*(uint32_t*)(code_loc+at)	= 1;		at += 4;
+				*(uint8_t*)(code_loc + at++) = 0xC7;
+				*(uint8_t*)(code_loc + at++) = 0x5;
+				*(uint32_t*)(code_loc + at) = hit_loc;	at += 4;
+				*(uint32_t*)(code_loc + at) = 1;		at += 4;
 				// pop eax
-				*(uint8_t*)(code_loc+at++)	= 0x58;
+				*(uint8_t*)(code_loc + at++) = 0x58;
 			}
 
 			// Put overwritten bytes back (full instruction(s))
-			memcpy(vcast(code_loc+at), old_bytes, size+nop);
-			at += (size+nop);
+			memcpy(vcast(code_loc + at), old_bytes, size + nop);
+			at += (size + nop);
 
 			// Place our JMP back
-			*(uint8_t*)(code_loc+at++) = 0xE9;
-			*(uint32_t*)(code_loc+at)  = ((address+5)-(code_loc+at+4));
+			*(uint8_t*)(code_loc + at++) = 0xE9;
+			*(uint32_t*)(code_loc + at) = ((address + 5) - (code_loc + at + 4));
 			at += 4;
 
-			edit::unprotect(address, size+nop);
+			edit::unprotect(address, size + nop);
 			// Inject the JMP to our own code
 			memcpy(vcast(address), inject, size);
-			for (int i=0; i<nop; i++){
-				*(uint8_t*)(address+size+i) = 0x90;
+			for (int i = 0; i < nop; i++) {
+				*(uint8_t*)(address + size + i) = 0x90;
 			}
 			edit::restore();
 			free(inject);
 
 			// wait for our masked value to be modified
 			// this means something wrote to our location
-			uint32_t d=0;
-			while (*(uint8_t*)hit_loc != 1){
-				Sleep(1); if (d++>0xFFFF) break;
+			uint32_t d = 0;
+			while (*(uint8_t*)hit_loc != 1) {
+				Sleep(1); if (d++ > 0xFFFF) break;
 			}
-			value=*(uint32_t*)trace_loc;
+			value = *(uint32_t*)trace_loc;
 
-			edit::unprotect(address, size+nop);
-			memcpy(vcast(address), old_bytes, size+nop);
+			edit::unprotect(address, size + nop);
+			memcpy(vcast(address), old_bytes, size + nop);
 			edit::restore();
 			free(old_bytes);
 
@@ -1238,105 +1256,105 @@ namespace eyestep {
 		// dumpreg(location, ebp, 10, true); will give you a readout of all local function-scope variables
 		// presently used in the function
 		std::vector<uint32_t> dumpreg(uint32_t address, uint8_t reg, int count, bool neg = false) {
-			uint32_t size=5, nop, isize=0, at=0;
-			uint32_t trace_loc	= reinterpret_cast<uint32_t>(VirtualAlloc(nullptr, 128, 0x1000, 0x40));
-			uint32_t code_loc	= reinterpret_cast<uint32_t>(VirtualAlloc(nullptr, 128, 0x1000, 0x40));
-			uint32_t hit_loc	= trace_loc + 128 - 4;
+			uint32_t size = 5, nop, isize = 0, at = 0;
+			uint32_t trace_loc = reinterpret_cast<uint32_t>(VirtualAlloc(nullptr, 128, 0x1000, 0x40));
+			uint32_t code_loc = reinterpret_cast<uint32_t>(VirtualAlloc(nullptr, 128, 0x1000, 0x40));
+			uint32_t hit_loc = trace_loc + 128 - 4;
 			std::vector<uint32_t> values;
 
 			// Interpret size of original instruction(s)
 			inst i = read(address);
-			while (i.address<(address+size)){
+			while (i.address < (address + size)) {
 				isize += i.len;
-				nop = ((i.address+i.len)-(address+size));
-				i = read(address+isize);
+				nop = ((i.address + i.len) - (address + size));
+				i = read(address + isize);
 			}
 
 			// store original bytes
-			uint8_t* old_bytes = new uint8_t[size+nop];
-			memcpy(old_bytes, vcast(address), size+nop);
+			uint8_t* old_bytes = new uint8_t[size + nop];
+			memcpy(old_bytes, vcast(address), size + nop);
 
 			uint8_t dist = 19;
 			if (neg) dist += 2;
 
 			// loop/read +4 of the reg each time until we reach count*4
 			// place it along trace_loc
-			*(uint8_t*)(code_loc+at++)	= 0x60; // pushad
-			*(uint8_t*)(code_loc+at++)	= 0x50; // push eax
-			*(uint8_t*)(code_loc+at++)	= 0x33; // xor eax,eax
-			*(uint8_t*)(code_loc+at++)	= 0xC0;
-			*(uint8_t*)(code_loc+at++)	= 0x53; // push ebx
-			*(uint8_t*)(code_loc+at++)	= 0x33; // xor ebx,ebx
-			*(uint8_t*)(code_loc+at++)	= 0xDB;
-			*(uint8_t*)(code_loc+at++)	= 0x51; // push ecx
+			*(uint8_t*)(code_loc + at++) = 0x60; // pushad
+			*(uint8_t*)(code_loc + at++) = 0x50; // push eax
+			*(uint8_t*)(code_loc + at++) = 0x33; // xor eax,eax
+			*(uint8_t*)(code_loc + at++) = 0xC0;
+			*(uint8_t*)(code_loc + at++) = 0x53; // push ebx
+			*(uint8_t*)(code_loc + at++) = 0x33; // xor ebx,ebx
+			*(uint8_t*)(code_loc + at++) = 0xDB;
+			*(uint8_t*)(code_loc + at++) = 0x51; // push ecx
 			// loop:
-			*(uint8_t*)(code_loc+at++)	= 0x8B; // mov ebx,eax
-			*(uint8_t*)(code_loc+at++)	= 0xD8;
-			if (neg){
-				*(uint8_t*)(code_loc+at++) = 0xF7; // neg ebx
-				*(uint8_t*)(code_loc+at++) = 0xDB;
+			*(uint8_t*)(code_loc + at++) = 0x8B; // mov ebx,eax
+			*(uint8_t*)(code_loc + at++) = 0xD8;
+			if (neg) {
+				*(uint8_t*)(code_loc + at++) = 0xF7; // neg ebx
+				*(uint8_t*)(code_loc + at++) = 0xDB;
 			}
-			*(uint8_t*)(code_loc+at++)	= 0x8B; // mov ecx,[ebx+ebp]
-			*(uint8_t*)(code_loc+at++)	= 0x0C;
-			*(uint8_t*)(code_loc+at++)	= ebx + (reg * 8);
-			*(uint8_t*)(code_loc+at++)	= 0x89; // mov [eax+trace_loc],ecx
-			*(uint8_t*)(code_loc+at++)	= 0x88;
-			*(uint32_t*)(code_loc+at)	= trace_loc; at += 4;
-			*(uint8_t*)(code_loc+at++)	= 0x83; // add eax,04
-			*(uint8_t*)(code_loc+at++)	= 0xC0;
-			*(uint8_t*)(code_loc+at++)	= 0x04;
-			*(uint8_t*)(code_loc+at++)	= 0x83; // cmp eax,0x40 (64)
-			*(uint8_t*)(code_loc+at++)	= 0xF8;
-			*(uint8_t*)(code_loc+at++)	= static_cast<uint8_t>(count * 4);
-			*(uint8_t*)(code_loc+at++)	= 0x72; // jb loop
-			*(uint8_t*)(code_loc+at++) = static_cast<uint8_t>(-dist);
-			*(uint8_t*)(code_loc+at++)	= 0xC7; // mov hit_loc, 1
-			*(uint8_t*)(code_loc+at++)	= 0x5;
-			*(uint32_t*)(code_loc+at)	= hit_loc;	 at += 4;
-			*(uint32_t*)(code_loc+at)	= 1;		 at += 4;
+			*(uint8_t*)(code_loc + at++) = 0x8B; // mov ecx,[ebx+ebp]
+			*(uint8_t*)(code_loc + at++) = 0x0C;
+			*(uint8_t*)(code_loc + at++) = ebx + (reg * 8);
+			*(uint8_t*)(code_loc + at++) = 0x89; // mov [eax+trace_loc],ecx
+			*(uint8_t*)(code_loc + at++) = 0x88;
+			*(uint32_t*)(code_loc + at) = trace_loc; at += 4;
+			*(uint8_t*)(code_loc + at++) = 0x83; // add eax,04
+			*(uint8_t*)(code_loc + at++) = 0xC0;
+			*(uint8_t*)(code_loc + at++) = 0x04;
+			*(uint8_t*)(code_loc + at++) = 0x83; // cmp eax,0x40 (64)
+			*(uint8_t*)(code_loc + at++) = 0xF8;
+			*(uint8_t*)(code_loc + at++) = static_cast<uint8_t>(count * 4);
+			*(uint8_t*)(code_loc + at++) = 0x72; // jb loop
+			*(uint8_t*)(code_loc + at++) = static_cast<uint8_t>(-dist);
+			*(uint8_t*)(code_loc + at++) = 0xC7; // mov hit_loc, 1
+			*(uint8_t*)(code_loc + at++) = 0x5;
+			*(uint32_t*)(code_loc + at) = hit_loc;	 at += 4;
+			*(uint32_t*)(code_loc + at) = 1;		 at += 4;
 			// end
-			*(uint8_t*)(code_loc+at++)	= 0x59; // pop ecx
-			*(uint8_t*)(code_loc+at++)	= 0x5B; // pop ebx
-			*(uint8_t*)(code_loc+at++)	= 0x58; // pop eax
-			*(uint8_t*)(code_loc+at++)	= 0x61; // popad
+			*(uint8_t*)(code_loc + at++) = 0x59; // pop ecx
+			*(uint8_t*)(code_loc + at++) = 0x5B; // pop ebx
+			*(uint8_t*)(code_loc + at++) = 0x58; // pop eax
+			*(uint8_t*)(code_loc + at++) = 0x61; // popad
 
 			// Make a JMP from the address to our own code
 			uint8_t* inject = new uint8_t[5];
 			*(uint8_t*)(inject) = 0xE9;
-			*(uint32_t*)(inject+1) = (code_loc-(address+5));
+			*(uint32_t*)(inject + 1) = (code_loc - (address + 5));
 
 			// Put overwritten bytes back (full instruction(s))
-			memcpy(vcast(code_loc+at), old_bytes, size+nop);
-			at += (size+nop);
+			memcpy(vcast(code_loc + at), old_bytes, size + nop);
+			at += (size + nop);
 
 			// Place our JMP back
-			*(uint8_t*)(code_loc+at++) = 0xE9;
-			*(uint32_t*)(code_loc+at)  = ((address+5)-(code_loc+at+4));
+			*(uint8_t*)(code_loc + at++) = 0xE9;
+			*(uint32_t*)(code_loc + at) = ((address + 5) - (code_loc + at + 4));
 			at += 4;
 
-			edit::unprotect(address, size+nop);
+			edit::unprotect(address, size + nop);
 			// Inject the JMP to our own code
 			memcpy(vcast(address), inject, size);
-			for (int i=0; i<nop; i++){
-				*(uint8_t*)(address+size+i) = 0x90;
+			for (int i = 0; i < nop; i++) {
+				*(uint8_t*)(address + size + i) = 0x90;
 			}
 			edit::restore();
 			free(inject);
 
 			// wait for our masked value to be modified
 			// this means something wrote to our location
-			uint32_t d=0;
-			while (*(uint8_t*)hit_loc != 1){
-				Sleep(1); if (d++>0xFFFF) break;
+			uint32_t d = 0;
+			while (*(uint8_t*)hit_loc != 1) {
+				Sleep(1); if (d++ > 0xFFFF) break;
 			}
 
-			edit::unprotect(address, size+nop);
-			memcpy(vcast(address), old_bytes, size+nop);
+			edit::unprotect(address, size + nop);
+			memcpy(vcast(address), old_bytes, size + nop);
 			edit::restore();
 			free(old_bytes);
 
-			for (int i=0; i<count; i++){
-				values.push_back(*(uint32_t*)(trace_loc+(i*4)));
+			for (int i = 0; i < count; i++) {
+				values.push_back(*(uint32_t*)(trace_loc + (i * 4)));
 			}
 
 			VirtualFree(vcast(code_loc), 128, MEM_RELEASE);
@@ -1345,20 +1363,20 @@ namespace eyestep {
 		}
 
 		conv getconv(uint32_t func) {
-			conv c				= conv_cdecl;
-			uint32_t eof		= nextprologue(func, ahead);
-			uint32_t at			= func;
-			bool not_fastcall	= false;
-			bool neither		= false;
+			conv c = conv_cdecl;
+			uint32_t eof = nextprologue(func, ahead);
+			uint32_t at = func;
+			bool not_fastcall = false;
+			bool neither = false;
 			if (fretn(func))  c = conv_stdcall;
 
 			while (at < eof) {
 				inst i = eyestep::read(at);
 				at += i.len;
 				// if edx or ecx was pushed thats an instant indication
-				if (strcmp(i.opcode, "push") == 0){
-					if (i.src.r32 == ecx) neither		= true;
-					if (i.src.r32 == edx) not_fastcall	= true;
+				if (strcmp(i.opcode, "push") == 0) {
+					if (i.src.r32 == ecx) neither = true;
+					if (i.src.r32 == edx) not_fastcall = true;
 				}
 				// completely ignore a test instruction, with ecx,ecx or edx,edx
 				if (strcmp(i.opcode, "test") == 0) {
@@ -1371,17 +1389,18 @@ namespace eyestep {
 					if (i.src.r32 == ecx && i.dest.r32 == ecx) {
 						neither = true;
 						continue;
-					} else if (i.src.r32 == edx && i.dest.r32 == edx) {
+					}
+					else if (i.src.r32 == edx && i.dest.r32 == edx) {
 						not_fastcall = true;
 						continue;
 					}
 				}
-				if (i.flags & Fl_src_r32 || i.flags & Fl_src_rm32 || (i.flags & Fl_src_rxmm && i.src.pref && PRE_DWORD_PTR)){
+				if (i.flags & Fl_src_r32 || i.flags & Fl_src_rm32 || (i.flags & Fl_src_rxmm && i.src.pref && PRE_DWORD_PTR)) {
 					if (strcmp(i.opcode, "mov") == 0 || strcmp(i.opcode, "lea") == 0 ||
 						strcmp(i.opcode, "movzx") == 0 || strcmp(i.opcode, "or") == 0 ||
 						strcmp(i.opcode, "xor") == 0 || strcmp(i.opcode, "xorps") == 0 ||
 						strcmp(i.opcode, "movd") == 0 || strcmp(i.opcode, "cvt") != -1
-						){
+						) {
 						// because something like a mov ecx,edx
 						// can also throw things off
 						if (i.dest.r32 == edx && /*!neither && */!not_fastcall) {
@@ -1401,14 +1420,14 @@ namespace eyestep {
 				// now, we check if an instruction USES edx or ecx after
 				// all that has passed, now that it's determined whether
 				// it was or wasn't passed to this function
-				if (i.flags & Fl_dest_r32 || i.flags & Fl_dest_rm32){
-					if (i.dest.r32 == edx){
-						if (!neither && !not_fastcall){
+				if (i.flags & Fl_dest_r32 || i.flags & Fl_dest_rm32) {
+					if (i.dest.r32 == edx) {
+						if (!neither && !not_fastcall) {
 							return conv_fastcall;
 						}
 					}
-					if (i.dest.r32 == ecx){
-						if (c != conv_fastcall && !neither){
+					if (i.dest.r32 == ecx) {
+						if (c != conv_fastcall && !neither) {
 							c = conv_thiscall;
 						}
 					}
@@ -1417,12 +1436,12 @@ namespace eyestep {
 					}
 				}
 			}
-		
+
 			return c;
 		}
 
 		const char* getsconv(conv c) {
-			return (c==0)?"cdecl":(c==1)?"stdcall":(c==2)?"thiscall":(c==3)?"fastcall":"";
+			return (c == 0) ? "cdecl" : (c == 1) ? "stdcall" : (c == 2) ? "thiscall" : (c == 3) ? "fastcall" : "";
 		}
 
 		// You provide a function, and the args it takes
@@ -1447,7 +1466,7 @@ namespace eyestep {
 			uint8_t cc = _conv;
 			if (cc == 0xF) cc = getconv(func);
 			if (cc == conv_cdecl) return func;
-			
+
 			uint32_t routine = reinterpret_cast<uint32_t>(VirtualAlloc(nullptr, 128, 0x1000 | 0x2000, 0x40));
 			uint32_t at = routine;
 			uint32_t arg = 0;
@@ -1469,8 +1488,8 @@ namespace eyestep {
 			while (top > arg) {
 				top--;
 				uint8_t bits = args[top];
-				uint8_t o = (8+(top*4));
-				if (bits == 32){
+				uint8_t o = (8 + (top * 4));
+				if (bits == 32) {
 					char c_arg[8];
 					sprintf_s(c_arg, "%02X", o);
 					at += eyestep::write(at, "push [ebp+" + std::string(c_arg) + "]").len;
