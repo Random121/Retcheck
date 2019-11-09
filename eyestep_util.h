@@ -214,18 +214,19 @@ namespace eyestep {
 	};
 
 	namespace exeutil {
+		// I made this look as pretty as possible :---)
 		uint8_t* readb(uint32_t addr, size_t count){ uint8_t* x = new uint8_t[count]; pmread(handle, vcast(addr), x, count, 0); return x; }
-		uint8_t readb(uint32_t addr) { uint8_t		x = 0; pmread(handle, vcast(addr), &x, 1, 0); return x; }
+		uint8_t	 readb(uint32_t addr)  { uint8_t	x = 0; pmread(handle, vcast(addr), &x, 1, 0); return x; }
 		uint16_t readus(uint32_t addr) { uint16_t	x = 0; pmread(handle, vcast(addr), &x, 2, 0); return x; }
 		uint32_t readui(uint32_t addr) { uint32_t	x = 0; pmread(handle, vcast(addr), &x, 4, 0); return x; }
-		uint64_t readull(uint32_t addr) { uint64_t	x = 0; pmread(handle, vcast(addr), &x, 8, 0); return x; }
-		char	readc(uint32_t addr) { char			x = 0; pmread(handle, vcast(addr), &x, 1, 0); return x; }
-		int16_t reads(uint32_t addr) { int16_t		x = 0; pmread(handle, vcast(addr), &x, 2, 0); return x; }
-		int32_t readi(uint32_t addr) { int32_t		x = 0; pmread(handle, vcast(addr), &x, 4, 0); return x; }
-		int64_t readll(uint32_t addr) { int64_t		x = 0; pmread(handle, vcast(addr), &x, 8, 0); return x; }
-		float readf(uint32_t addr) { float			x = 0; pmread(handle, vcast(addr), &x, 4, 0); return x; }
-		double readd(uint32_t addr) { double		x = 0; pmread(handle, vcast(addr), &x, 8, 0); return x; }
-		void write(uint32_t addr, uint8_t* v, size_t count) { pmwrite(handle, vcast(addr), v, count, 0); }
+		uint64_t readull(uint32_t addr){ uint64_t	x = 0; pmread(handle, vcast(addr), &x, 8, 0); return x; }
+		char	 readc(uint32_t addr)  { char		x = 0; pmread(handle, vcast(addr), &x, 1, 0); return x; }
+		int16_t  reads(uint32_t addr)  { int16_t	x = 0; pmread(handle, vcast(addr), &x, 2, 0); return x; }
+		int32_t  readi(uint32_t addr)  { int32_t	x = 0; pmread(handle, vcast(addr), &x, 4, 0); return x; }
+		int64_t  readll(uint32_t addr) { int64_t	x = 0; pmread(handle, vcast(addr), &x, 8, 0); return x; }
+		float    readf(uint32_t addr)  { float		x = 0; pmread(handle, vcast(addr), &x, 4, 0); return x; }
+		double   readd(uint32_t addr)  { double		x = 0; pmread(handle, vcast(addr), &x, 8, 0); return x; }
+		void write(uint32_t addr, uint8_t* v, size_t count){ pmwrite(handle, vcast(addr), v, count, 0); }
 		void write(uint32_t addr, uint8_t v)  { pmwrite(handle, vcast(addr), &v, 1, 0); }
 		void write(uint32_t addr, uint16_t v) { pmwrite(handle, vcast(addr), &v, 2, 0); }
 		void write(uint32_t addr, uint32_t v) { pmwrite(handle, vcast(addr), &v, 4, 0); }
@@ -239,11 +240,11 @@ namespace eyestep {
 		void write(uint32_t addr, cbyte v)	  { pmwrite(handle, vcast(addr), v.bytes.data(), v.bytes.size(), 0); }
 		
 		std::string sreadb(uint32_t addr, size_t count) {
-			std::string str="";
-			if (count!=0){
-				uint8_t* x=new uint8_t[count];
+			std::string str = "";
+			if (count != 0){
+				uint8_t* x = new uint8_t[count];
 				pmread(handle, vcast(addr), x, count, 0);
-				for (int i=0;i<count;i++){
+				for (int i=0; i<count; i++){
 					str+=convert::to_str(x[i]);
 				}
 				delete x;
@@ -468,10 +469,11 @@ namespace eyestep {
 						continue;
 					}
 				}
-				if (i.flags & Fl_src_r32 || i.flags & Fl_src_rm32){
+				if (i.flags & Fl_src_r32 || i.flags & Fl_src_rm32 || (i.flags & Fl_src_rxmm && i.src.pref && PRE_DWORD_PTR)){
 					if (strcmp(i.opcode, "mov") == 0 || strcmp(i.opcode, "lea") == 0 ||
 						strcmp(i.opcode, "movzx") == 0 || strcmp(i.opcode, "or") == 0 ||
-						strcmp(i.opcode, "xor") == 0
+						strcmp(i.opcode, "xor") == 0 || strcmp(i.opcode, "xorps") == 0 ||
+						strcmp(i.opcode, "movd") == 0 || strcmp(i.opcode, "cvt") != -1
 						){
 						// because something like a mov ecx,edx
 						// can also throw things off
@@ -532,7 +534,7 @@ namespace eyestep {
 			return nextprologue(at, behind, false);
 		}
 
-		std::vector<uint32_t> __fastcall scan(const char* aob, const char* _mask, uint32_t begin = 0, uint32_t to = 0) {
+		std::vector<uint32_t> __fastcall scan(const char* aob, const char* _mask, uint32_t begin = 0, uint32_t to = 0, int stopAtResult = 0) {
 			uint32_t size=0, at=0, start=begin, end=to;
 			if (!(start && end)){
 				start = base;
@@ -582,6 +584,9 @@ namespace eyestep {
 					printf("[!] Failed to read process region [0x%08X]\n", start);
 					start += chunksize;
 					continue;
+				}
+				if (stopAtResult != 0 && results_list.size() >= stopAtResult) {
+					break;
 				}
 			}
 			delete buffer;
@@ -942,14 +947,28 @@ namespace eyestep {
 			return result_list;
 		}
 
+		bool find_in_table(uint8_t* t, uint8_t b) {
+			for (int i = 0; i < sizeof(t) / sizeof(uint8_t); i++) {
+				if (b == t[i]) {
+					return true;
+				}
+			}
+			return false;
+		};
+
 		uint32_t nextcall(uint32_t func, direction d, bool loc = false){
 			uint32_t start = func;
+
+			// opcodes to ignore before the E8 byte for more
+			// accuracy on specifically the call instructions
+			uint8_t ignore[] = { 0x83, 0x89, 0x8B };
+
 			// Skip current call if we're already at one
 			if (*(uint8_t*)start == 0xE8){
 				if (d == ahead)  start++;
 				if (d == behind) start--;
 			}
-			while (*(uint8_t*)start != 0xE8){
+			while (!(*(uint8_t*)start == 0xE8 && !find_in_table(ignore, *(uint8_t*)(start - 1)))) {
 				if (d == ahead)  start++;
 				if (d == behind) start--;
 			}
@@ -980,7 +999,7 @@ namespace eyestep {
 			return nextprologue(at, behind, false);
 		}
 
-		std::vector<uint32_t> __fastcall scan(const char* aob, const char* _mask, uint32_t begin = 0, uint32_t to = 0) {
+		std::vector<uint32_t> __fastcall scan(const char* aob, const char* _mask, uint32_t begin = 0, uint32_t to = 0, int stopAtResult = 0) {
 			uint32_t size=0, at=0, start=begin, end=to;
 			if (!(start && end)){
 				start = eyestep::base;
@@ -1025,6 +1044,9 @@ namespace eyestep {
 				__asm sub edi, padding
 				__asm add start, edi
 				__asm pop edi
+				if (stopAtResult != 0 && results_list.size() >= stopAtResult) {
+					break;
+				}
 			}
 			//SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_NORMAL);
 			free(buffer);
@@ -1354,10 +1376,11 @@ namespace eyestep {
 						continue;
 					}
 				}
-				if (i.flags & Fl_src_r32 || i.flags & Fl_src_rm32){
+				if (i.flags & Fl_src_r32 || i.flags & Fl_src_rm32 || (i.flags & Fl_src_rxmm && i.src.pref && PRE_DWORD_PTR)){
 					if (strcmp(i.opcode, "mov") == 0 || strcmp(i.opcode, "lea") == 0 ||
 						strcmp(i.opcode, "movzx") == 0 || strcmp(i.opcode, "or") == 0 ||
-						strcmp(i.opcode, "xor") == 0
+						strcmp(i.opcode, "xor") == 0 || strcmp(i.opcode, "xorps") == 0 ||
+						strcmp(i.opcode, "movd") == 0 || strcmp(i.opcode, "cvt") != -1
 						){
 						// because something like a mov ecx,edx
 						// can also throw things off
@@ -1398,6 +1421,95 @@ namespace eyestep {
 			return c;
 		}
 
+		const char* getsconv(conv c) {
+			return (c==0)?"cdecl":(c==1)?"stdcall":(c==2)?"thiscall":(c==3)?"fastcall":"";
+		}
+
+		// You provide a function, and the args it takes
+		// (put 32 for every arg you would use in the function
+		// UNLESS that arg is a double or long long value(then put 64)).
+		// 
+		// This returns a new routine for that function,
+		// which is a __cdecl.
+		// You can now keep your typedef a __cdecl for that function
+		// and this will ensure that it is ALWAYS called as a __cdecl.
+		// 
+		// If, for example, roblox's lua_pushvalue was a __fastcall,
+		// you could do this instead:
+		// 
+		// typedef void(__cdecl* T_lua_pushvalue)(int rL, int id);
+		// T_lua_pushvalue r_pushvalue = (T_lua_pushvalue)transform_cdecl(retcheck::patch(aslr(addr)), {32,32}, getconv(addr));
+		// 
+		// Leave out the _conv arg when using this function
+		// unless you want to specify the convention manually.
+		// 
+		uint32_t transform_cdecl(uint32_t func, std::vector<int> args, conv _conv = 0xF) {
+			uint8_t cc = _conv;
+			if (cc == 0xF) cc = getconv(func);
+			if (cc == conv_cdecl) return func;
+			
+			uint32_t routine = reinterpret_cast<uint32_t>(VirtualAlloc(nullptr, 128, 0x1000 | 0x2000, 0x40));
+			uint32_t at = routine;
+			uint32_t arg = 0;
+
+			at += eyestep::write(at, "push ebp").len;
+			at += eyestep::write(at, "mov ebp,esp").len;
+			at += eyestep::write(at, "xor eax,eax").len;
+
+			if ((cc == conv_fastcall || cc == conv_thiscall) && args.size() >= 1) {
+				at += eyestep::write(at, "mov ecx,[ebp+08]").len;
+				arg = 1;
+			}
+			if (cc == conv_fastcall && args.size() >= 2) {
+				at += eyestep::write(at, "mov edx,[ebp+0C]").len;
+				arg = 2;
+			}
+
+			uint32_t top = args.size();
+			while (top > arg) {
+				top--;
+				uint8_t bits = args[top];
+				uint8_t o = (8+(top*4));
+				if (bits == 32){
+					char c_arg[8];
+					sprintf_s(c_arg, "%02X", o);
+					at += eyestep::write(at, "push [ebp+" + std::string(c_arg) + "]").len;
+				}
+				else if (bits == 64) {
+					*(uint8_t*)(at++) = 0xF2; // movsd xmm0, qword ptr [ebp+o]
+					*(uint8_t*)(at++) = 0x0F;
+					*(uint8_t*)(at++) = 0x10;
+					*(uint8_t*)(at++) = 0x45;
+					*(uint8_t*)(at++) = o;
+					*(uint8_t*)(at++) = 0x83; // sub esp,8
+					*(uint8_t*)(at++) = 0xEC;
+					*(uint8_t*)(at++) = 0x08;
+					*(uint8_t*)(at++) = 0xF2; // movsd qword ptr [esp],xmm0
+					*(uint8_t*)(at++) = 0x0F;
+					*(uint8_t*)(at++) = 0x11;
+					*(uint8_t*)(at++) = 0x04;
+					*(uint8_t*)(at++) = 0x24;
+				}
+			}
+
+			at += eyestep::write(at, "call " + convert::to_str(func)).len;
+			at += eyestep::write(at, "pop ebp").len;
+			at += eyestep::write(at, "retn").len;
+
+			uint32_t size = at - routine;
+			for (int i = 0; i < (size + 16) % 16; i++) {
+				at += eyestep::write(at, "int3").len;
+			}
+
+			return routine;
+		}
+
+		// cleans up routines generated from transform_stdcall
+		uint32_t free_routine(uint32_t func) {
+			VirtualFree(vcast(func), 128, MEM_RELEASE);
+		}
+
+		// Mwahahahaha smart cookie vibes
 		PEB::PEB* getPEB() {
 			uint32_t x = 0;
 			__asm push eax;
