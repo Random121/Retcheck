@@ -1,11 +1,20 @@
 # About
-The father API of memory exploits,
-with an x86 disassembler at its core.
 
-The eyepstep_util header contains all of the functions for
-both external and DLL applications.
-simply use eyestep::exeutil if you're disassembling a remote application,
-and eyestep::dllutil if you're using eyestep in a DLL.
+EyeStep is a nearly full x86 disassembler written from scratch
+exclusively aimed towards exploiting, but also
+as a hobby project.
+
+eyestep_util.h contains functions for
+manipulating all things memory.
+
+You can place untraceable hooks with
+smooth adaption to the surrounding instructions.
+
+You can scavenge through memory with predictable, stable functions
+that take into account future adjustments.
+
+You can identify and distinguish IMM32 offsets, DISP32 values,
+and readout entire structs if need be.
 
 
 
