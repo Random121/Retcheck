@@ -981,7 +981,7 @@ namespace eyestep {
 				//printf("%s, %i, %i.\n", i.data, i.src.r32, i.dest.r32);
 				// if edx or ecx was pushed thats an instant indication
 				if (strcmp(i.opcode, "push") == 0) {
-					if (i.src.r32 == ecx) neither = true;
+					if (i.src.r32 == ecx) break;//neither = true;
 					if (i.src.r32 == edx) not_fastcall = true;
 				}
 				// completely ignore a test instruction, with ecx,ecx or edx,edx
