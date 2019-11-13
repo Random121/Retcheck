@@ -6,6 +6,7 @@ as a hobby project.
 
 eyestep_util.h contains functions for
 manipulating all things memory.
+It has been fully built to handle and support memory editing in both external (.exe) applications and DLL's.
 
 You can place untraceable hooks with
 smooth adaption to the surrounding instructions.
