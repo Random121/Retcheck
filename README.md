@@ -82,6 +82,18 @@ needs optimization, and some rewriting.
 
 # Reading instructions
 
+Instructions are interpreted like so:
+eyestep::inst i = eyestep::read(0x847EFB);
+
+or, full text disassembly can be done with two options:
+std::string strasm = eyestep::sread(0x847EF0, 0x847F00); // start address, end address
+and:
+std::string strasm = eyestep::sread(0x847EF0, 10); // start address, number of instructions to read
+
+printf("Output:\n\n%s\n", strasm.c_str());
+
+
+
 Let's say we wanna dump a struct; and we have this instruction in a lua function:
 .text:00847EFB                 mov eax, [esi+8]
 
