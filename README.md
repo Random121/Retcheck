@@ -19,10 +19,9 @@ and readout entire structs if need be.
 
 
 
-# Function Usage
-"direction" can be direction::ahead, or direction::behind.
-this determines if it goes forwards or backwards starting
-at "function".
+# Function Usage (eyestep_util.h)
+Please note that "direction" can be direction::ahead, or direction::behind.
+this determines if it will look forwards or backwards starting at "function".
 
 nextprologue(function, direction);    goes to the start address of the very next function
 
