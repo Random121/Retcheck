@@ -67,7 +67,7 @@
 
 #define addoff8(s,b,l,v)		char m[16]; v=*(uint8_t*)(b+l); (v<=0x7F)		? sprintf_s(m,"+%02X",v) : sprintf_s(m,"-%02X",(0xFF+1)-v);			strcat_s(s,m); l+=1
 #define addoff16(s,b,l,v)		char m[16]; v=*(uint16_t*)(b+l);(v<=0x7FFF)		? sprintf_s(m,"+%04X",v) : sprintf_s(m,"-%04X",(0xFFFF+1)-v);		strcat_s(s,m); l+=2
-#define addoff32(s,b,l,v)		char m[16]; v=*(uint32_t*)(b+l);(v<=0x7FFFFFFF) ? sprintf_s(m,"+%08X",v) : sprintf_s(m,"-%08X",(0xFFFFFFFF+1)-v);	strcat_s(s,m); l+=4
+#define addoff32(s,b,l,v)		char m[16]; v=*(uint32_t*)(b+l);(v<=0x7FFFFFFF)	? sprintf_s(m,"+%08X",v) : sprintf_s(m,"-%08X",(0xFFFFFFFF+1)-v);	strcat_s(s,m); l+=4
 #define getr1(b,l)				(b[l] % 64 / 8)
 #define getr2(b,l)				(b[l] % 64 % 8)
 #define getmode20(b,l)			(b[l] / 0x20)
@@ -86,53 +86,53 @@ enum direction {
 
 namespace eyestep {
 	struct inst {
-		uint32_t address;
+		UINT address;
 
-		uint8_t len; // overall length of the instruction in bytes (defaults to 1)
-		uint8_t p_rep; // rep
-		uint8_t p_lock; // lock
-		uint8_t p_seg; // seg
-		uint8_t r_mod; // register mode
+		BYTE len; // overall length of the instruction in bytes (defaults to 1)
+		BYTE p_rep; // rep
+		BYTE p_lock; // lock
+		BYTE p_seg; // seg
+		BYTE r_mod; // register mode
 
-		uint32_t pref; // global instruction prefix (cs/ds/lock/repne/etc.)
-		uint32_t flags; // global instruction flags (which also determine src/dest values)
+		UINT pref; // global instruction prefix (cs/ds/lock/repne/etc.)
+		UINT flags; // global instruction flags (which also determine src/dest values)
 
-		uint8_t rel8; // 8 bit relative value (for jmp or call)
-		uint16_t rel16; // 16 bit relative value
-		uint32_t rel32; // 32 bit relative value
+		BYTE rel8; // 8 bit relative value (for jmp or call)
+		USHORT rel16; // 16 bit relative value
+		UINT rel32; // 32 bit relative value
 
-		uint8_t condition; // if Fl_condition flag is set, so is this (if its a ja/jne/jnl, this will be set to the condition enum a/ne/nl)
+		BYTE condition; // if Fl_condition flag is set, so is this (if its a ja/jne/jnl, this will be set to the condition enum a/ne/nl)
 
 		struct {
-			uint8_t r8; // 8 bit register
-			uint8_t r16; // 16 bit register
-			uint8_t r32; // 32 bit register
-			uint8_t rxmm; // 64 bit register
-			uint8_t r_2; // second register in source operand (same bit type as others) (use discretion/no flag indicator yet)
-			uint8_t mul; // multiplier (0 by default, if there is a multiplier it wont be 0)
-			uint8_t imm8; // 8 bit offset value
-			uint16_t imm16; // 16 bit offset value
-			uint32_t imm32; // 32 bit offset value
-			uint8_t disp8;
-			uint16_t disp16;
-			uint32_t disp32; // a fixed value (not an 'offset' (+/-))
-			uint8_t pref; // prefix for this operand (byte/dword/qword ptr, etc.)
+			BYTE r8; // 8 bit register
+			BYTE r16; // 16 bit register
+			BYTE r32; // 32 bit register
+			BYTE rxmm; // 64 bit register
+			BYTE r_2; // second register in source operand (same bit type as others) (use discretion/no flag indicator yet)
+			BYTE mul; // multiplier (0 by default, if there is a multiplier it wont be 0)
+			BYTE imm8; // 8 bit offset value
+			USHORT imm16; // 16 bit offset value
+			UINT imm32; // 32 bit offset value
+			BYTE disp8;
+			USHORT disp16;
+			UINT disp32; // a fixed value (not an 'offset' (+/-))
+			BYTE pref; // prefix for this operand (byte/dword/qword ptr, etc.)
 		} src;
 
 		struct {
-			uint8_t r8;
-			uint8_t r16;
-			uint8_t r32;
-			uint8_t rxmm;
-			uint8_t r_2;
-			uint8_t mul;
-			uint8_t imm8;
-			uint16_t imm16;
-			uint32_t imm32;
-			uint8_t disp8;
-			uint16_t disp16;
-			uint32_t disp32; // a fixed value (not an 'offset' (+/-))
-			uint8_t pref;
+			BYTE r8;
+			BYTE r16;
+			BYTE r32;
+			BYTE rxmm;
+			BYTE r_2;
+			BYTE mul;
+			BYTE imm8;
+			USHORT imm16;
+			UINT imm32;
+			BYTE disp8;
+			USHORT disp16;
+			UINT disp32; // a fixed value (not an 'offset' (+/-))
+			BYTE pref;
 		} dest;
 
 		char data[128]; // readable output/translation of the instruction
@@ -196,23 +196,24 @@ namespace eyestep {
 	const char c_ref1[16] = {'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
 	const int c_ref2[16] = {  0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15};
 
-	char DLL_MODE = 0;
+	bool DLL_MODE = 0;
 	void* handle;
-	uint32_t base;
-	uint32_t base_size;
+	int base;
+	int base_size;
 
-	uint32_t from_base(uint32_t addr)	{ return base + addr; }
-	uint32_t base_start()				{ return base; }
-	uint32_t base_end()					{ return base + base_size; }
-	uint32_t aslr(uint32_t addr)		{ return (addr - 0x400000 + base); } // resolves an address from IDA pro(0x400000 base) to current process
-	uint32_t unaslr(uint32_t addr)		{ return (addr + 0x400000 - base); } // does vice versa of the aslr() function
+	int from_base(int addr)	{ return base + addr; }
+	int base_start()		{ return base; }
+	int base_end()			{ return base + base_size; }
+	int aslr(int addr)		{ return (addr - 0x400000 + base); } // resolves an address from IDA pro(0x400000 base) to current process
+	int unaslr(int addr)	{ return (addr + 0x400000 - base); } // does vice versa of the aslr() function
 
 	void use(void* x){
 		if (x == 0)
 			throw std::exception("Invalid handle for disassembler");
 		else if (x == GetCurrentProcess()) {
+			DLL_MODE = true;
+
 			__asm {
-				mov DLL_MODE, 1;
 				push eax;
 				mov eax, fs:[0x30];
 				mov eax, [eax + 8];
@@ -229,34 +230,35 @@ namespace eyestep {
 			if (std::string(path).find("Roblox") != std::string::npos){
 				base_size = (0x10DF000 - 0x400000); // only go up to the .rdata section
 			} else {
-				base_size = static_cast<uint32_t>(mbi.RegionSize);
+				base_size = static_cast<UINT>(mbi.RegionSize);
 			}
 		} else { // if were not using a dll . . .
+			DLL_MODE = false;
+
 			// read the PEB header anyway, externally.
 			// this way we don't need to use psapi.h
 			void* code_loc	 = VirtualAllocEx(x, nullptr, 64, 0x1000, 0x40);
-			void* output_loc = VirtualAllocEx(x, nullptr, 4, 0x1000, 0x40);
+			void* output_loc = (void*)((int)code_loc + 60);
 
-			uint8_t PEB_offset = 8;
-			uint8_t data[] = { 0x55, 0x8B, 0xEC, 0x50, 0x64, 0x8B, 0x5, 0x30, 0, 0, 0, 0x8B, 0x40, PEB_offset, 0xA3, 0xFF, 0xFF, 0xFF, 0xFF, 0x58, 0x5D, 0xC3 };
-			*(uint32_t*)(data + 15) = reinterpret_cast<uint32_t>(output_loc);
+			BYTE PEB_offset = 8;
+			BYTE data[] = { 0x55, 0x8B, 0xEC, 0x50, 0x64, 0x8B, 0x5, 0x30, 0, 0, 0, 0x8B, 0x40, PEB_offset, 0xA3, 0xFF, 0xFF, 0xFF, 0xFF, 0x58, 0x5D, 0xC3 };
+			*(UINT*)(data + 15) = reinterpret_cast<UINT>(output_loc);
 
-			WriteProcessMemory(x, code_loc, &data, sizeof(data) / sizeof(uint8_t), 0);
+			WriteProcessMemory(x, code_loc, &data, sizeof(data) / sizeof(BYTE), 0);
 
-			HANDLE t = CreateRemoteThread(x, 0, 0, reinterpret_cast<LPTHREAD_START_ROUTINE>(code_loc), 0, 0, NULL);
-			WaitForSingleObject(t, 1000);
-			CloseHandle(t);
+			HANDLE thread = CreateRemoteThread(x, 0, 0, reinterpret_cast<LPTHREAD_START_ROUTINE>(code_loc), 0, 0, NULL);
+			WaitForSingleObject(thread, 1000);
+			CloseHandle(thread);
 
 			LPVOID buffer = nullptr;
-			ReadProcessMemory(x, output_loc, &buffer, sizeof(uint32_t), NULL);
-			base = reinterpret_cast<uint32_t>(buffer);
+			ReadProcessMemory(x, output_loc, &buffer, sizeof(UINT), NULL);
+			base = reinterpret_cast<UINT>(buffer);
 
 			VirtualFreeEx(x, code_loc, 64, MEM_RELEASE);
-			VirtualFreeEx(x, output_loc, 4, MEM_RELEASE);
 
 			MEMORY_BASIC_INFORMATION mbi = { 0 };
 			if (VirtualQueryEx(x, reinterpret_cast<void*>(base + 0x1000), &mbi, 0x2C)){
-				base_size = static_cast<uint32_t>(mbi.RegionSize) - 0x1000;
+				base_size = static_cast<UINT>(mbi.RegionSize) - 0x1000;
 			} else {
 				printf("Failed to query process base address..\n");
 			}
@@ -265,27 +267,29 @@ namespace eyestep {
 		handle = x;
 	}
 
-	// label can either point to an existing location in memory to be used in the ASM interpreter,
-	// or it will allocate new memory at a random location with the provided size, if the address is NULL.
-	// used with injecting assembly (look at labels in cheat engine's auto assemble)
+	// label can either point to an existing location in memory to be
+	// used in the ASM interpreter, or it will allocate new memory at
+	// a random location with the provided size, if the address is NULL.
+	// this will be used eventually for the ASM writer.
+	// 
 	struct label {
 		char name[64];
-		uint32_t address;
+		int address;
 
 		label() {
 			name[0] = '\0';
 			address = 0;
 		}
 
-		label(char* x, uint32_t y, uint16_t size = 0) {
+		label(char* x, UINT y, USHORT size = 0) {
 			name[0] = '\0';
 			strcpy_s(name, x);
 			address = y;
 			if (address == 0){
 				if (DLL_MODE){
-					address = reinterpret_cast<uint32_t>(VirtualAlloc(nullptr, size, 0x1000 | 0x2000, 0x40));
+					address = reinterpret_cast<int>(VirtualAlloc(nullptr, size, 0x1000 | 0x2000, 0x40));
 				} else {
-					address = reinterpret_cast<uint32_t>(VirtualAllocEx(handle, nullptr, size, 0x1000 | 0x2000, 0x40));
+					address = reinterpret_cast<int>(VirtualAllocEx(handle, nullptr, size, 0x1000 | 0x2000, 0x40));
 				}
 			}
 		}
@@ -306,13 +310,13 @@ namespace eyestep {
 	enum conds					{  o,   no,   b,   nb,   e,   ne,   na,   a,   s,   ns,   p,   np,   l,   nl,   le,   g  };
 	const char* c_conds[16] =	{ "o", "no", "b", "nb", "e", "ne", "na", "a", "s", "ns", "p", "np", "l", "nl", "le", "g" };
 
-	const uint8_t mults[] =		{ 0, 2, 4, 8 };
+	const BYTE mults[] =		{ 0, 2, 4, 8 };
 
-	inst read(uint32_t address){
+	inst read(int address){
 		inst p = inst();
-		uint8_t c = 0;
-		uint8_t l = 0;
-		uint8_t *b = new uint8_t[16];
+		BYTE c = 0;
+		BYTE l = 0;
+		BYTE *b = new BYTE[16];
 		p.address = address;
 		
 		if (DLL_MODE){
@@ -933,6 +937,10 @@ namespace eyestep {
 			p.set_op("nop");
 			p.flags |= Fl_none;
 			l++;
+		} else if (b[l] == 0x9F){
+			p.set_op("lahf");
+			p.flags |= Fl_none;
+			l++;
 		} else if (b[l] == 0xA0){
 			p.dest.pref |= PRE_DWORD_PTR;
 			p.set_op("mov");
@@ -1085,37 +1093,37 @@ namespace eyestep {
 		} else if (p.flags & Fl_src_imm32){
 			addoff32(p.data, b, l, p.src.imm32); // 32 bit offset or signed value
 		} else if (p.flags & Fl_src_disp8) { // constant unsigned byte value
-			p.src.disp8 = *(uint8_t*)(b+l);
+			p.src.disp8 = *(BYTE*)(b+l);
 			l += 1;
 			char m[4];
 			sprintf_s(m, "%02X", p.src.disp8);
 			strcat_s(p.data, m);
 		} else if (p.flags & Fl_src_disp16) { // constant unsigned short value
-			p.src.disp16 = *(uint16_t*)(b+l);
+			p.src.disp16 = *(USHORT*)(b+l);
 			l += 2;
 			char m[8];
 			sprintf_s(m, "%04X", p.src.disp16);
 			strcat_s(p.data, m);
 		} else if (p.flags & Fl_src_disp32) { // constant unsigned int value
-			p.src.disp32 = *(uint32_t*)(b+l);
+			p.src.disp32 = *(UINT*)(b+l);
 			l += 4;
 			char m[16];
 			sprintf_s(m, "%08X", p.src.disp32);
 			strcat_s(p.data, m);
 		} if (p.flags & Fl_rel8){
-			p.rel8 = *(uint8_t*)(b+l);
+			p.rel8 = *(BYTE*)(b+l);
 			char m[64];
 			sprintf_s(m, "RobloxPlayerBeta.exe+%08X", ((address + l + 1) + p.rel8) - base);
 			l += 1;
 			strcat_s(p.data, m);
 		} else if (p.flags & Fl_rel16){
-			p.rel16 = *(uint16_t*)(b+l);
+			p.rel16 = *(USHORT*)(b+l);
 			char m[64];
 			sprintf_s(m, "RobloxPlayerBeta.exe+%08X", ((address + l + 2) + p.rel16) - base);
 			l += 2;
 			strcat_s(p.data, m);
 		} else if (p.flags & Fl_rel32){
-			p.rel32 = *(uint32_t*)(b+l);
+			p.rel32 = *(UINT*)(b+l);
 			char m[64];
 			sprintf_s(m, "RobloxPlayerBeta.exe+%08X", ((address + l + 4) + p.rel32) - base);
 			l += 4;
@@ -1158,7 +1166,7 @@ namespace eyestep {
 				case 0: // 0x00-0x3F
 					if (mode == 5) {
 						p.flags |= Fl_src_disp8;
-						p.src.disp32 = *(uint32_t*)(b+l);
+						p.src.disp32 = *(UINT*)(b+l);
 						char m[16];
 						sprintf_s(m,"%08X",p.src.disp32);
 						strcat_s(p.data, m);
@@ -1280,19 +1288,19 @@ namespace eyestep {
 			} else if (p.flags & Fl_dest_imm32){
 				addoff32(p.data, b, l, p.dest.imm32);
 			} else if (p.flags & Fl_dest_disp8) { // constant unsigned byte value
-				p.dest.disp8 = *(uint8_t*)(b+l);
+				p.dest.disp8 = *(BYTE*)(b+l);
 				l += 1;
 				char m[4];
 				sprintf_s(m, "%02X", p.dest.disp8);
 				strcat_s(p.data, m);
 			} else if (p.flags & Fl_dest_disp16) { // constant unsigned short value
-				p.dest.disp16 = *(uint16_t*)(b+l);
+				p.dest.disp16 = *(USHORT*)(b+l);
 				l += 2;
 				char m[8];
 				sprintf_s(m, "%04X", p.dest.disp16);
 				strcat_s(p.data, m);
 			} else if (p.flags & Fl_dest_disp32) { // constant unsigned int value
-				p.dest.disp32 = *(uint32_t*)(b+l);
+				p.dest.disp32 = *(UINT*)(b+l);
 				l += 4;
 				char m[16];
 				sprintf_s(m, "%08X", p.dest.disp32);
@@ -1335,7 +1343,7 @@ namespace eyestep {
 					case 0: // 0x00-0x3F
 						if (mode == 5) {
 							p.flags |= Fl_dest_disp32;
-							p.dest.disp32 = *(uint32_t*)(b+l);
+							p.dest.disp32 = *(UINT*)(b+l);
 							char m[16];
 							sprintf_s(m,"%08X",p.dest.disp32);
 							strcat_s(p.data, m);
@@ -1458,9 +1466,9 @@ namespace eyestep {
 	//
 	// returns all of the instructions in an std::vector
 	//
-	std::vector<inst> read(uint32_t begin, uint32_t end) {
+	std::vector<inst> read(int begin, int end) {
 		std::vector<inst> o = std::vector<inst>();
-		uint32_t start = begin;
+		int start = begin;
 		if (end > base){
 			while (start < end) {
 				inst i = read(start);
@@ -1484,9 +1492,9 @@ namespace eyestep {
 	//
 	// returns all the instructions as a viewable string.
 	//
-	std::string sread(uint32_t begin, uint32_t end) {
+	std::string sread(int begin, int end) {
 		std::string o = "";
-		uint32_t start = begin;
+		int start = begin;
 		if (end > base){
 			while (start < end) {
 				inst i = read(start);
@@ -1506,16 +1514,16 @@ namespace eyestep {
 	}
 
 	namespace convert {
-		short	to_short(uint8_t a, uint8_t b){ short v=b;v<<=8;v|=a; return v; }
-		int		to_int	(uint8_t a, uint8_t b, uint8_t c, uint8_t d){ return int(a<<24|b<<16|c<<8|d); }
-		uint32_t pbtodw(uint8_t* b){ return (b[0])|(b[1]<<8)|(b[2]<<16)|(b[3]<<24); }
-		uint8_t* dwtopb(uint32_t v){ uint8_t* data=new uint8_t[4]; memcpy(data,&v,4); return data; }
+		short	to_short(BYTE a, BYTE b){ short v=b;v<<=8;v|=a; return v; }
+		int		to_int	(BYTE a, BYTE b, BYTE c, BYTE d){ return int(a<<24|b<<16|c<<8|d); }
+		int		pbtodw(BYTE* b){ return (b[0])|(b[1]<<8)|(b[2]<<16)|(b[3]<<24); }
+		BYTE* dwtopb(UINT v){ BYTE* data=new BYTE[4]; memcpy(data,&v,4); return data; }
 		
 		// translation
-		uint8_t to_hex(char* x) {
+		BYTE to_hex(char* x) {
 			if (lstrlenA(x)<2) return 0;
 			if (x[0]=='?' && x[1]=='?') return 0;
-			uint8_t b = 0;
+			BYTE b = 0;
 			for (int i=0;i<16;i++){
 				if (x[0]==c_ref1[i]) b+=c_ref2[i]*16;
 				if (x[1]==c_ref1[i]) b+=i;
@@ -1523,14 +1531,14 @@ namespace eyestep {
 			return b;
 		}
 
-		std::string to_str(uint8_t b) {
+		std::string to_str(BYTE b) {
 			std::string x = "";
 			x += c_ref1[b/16];
 			x += c_ref1[b%16];
 			return x;
 		}
 
-		std::string to_str(uint32_t address) {
+		std::string to_str(int address) {
 			std::string str = "";
 			char c[16];
 			sprintf_s(c, "%08X", address);
@@ -1538,8 +1546,8 @@ namespace eyestep {
 			return str;
 		}
 
-		// converts a string representation of an address to a uint32_t/hex address
-		uint32_t to_addr(char* addr){
+		// converts a string representation of an address to a UINT/hex address
+		int to_addr(char* addr){
 			if (lstrlenA(addr) < 8) return 0;
 
 			char c1[2],c2[2],c3[2],c4[2];
@@ -1548,11 +1556,11 @@ namespace eyestep {
 			c3[0]=addr[4],c3[1]=addr[5];
 			c4[0]=addr[6],c4[1]=addr[7];
 
-			return static_cast<uint32_t>(to_int(to_hex(c1), to_hex(c2), to_hex(c3), to_hex(c4)));
+			return static_cast<int>(to_int(to_hex(c1), to_hex(c2), to_hex(c3), to_hex(c4)));
 		}
 	
-		std::string to_bytes(uint32_t addr) {
-			uint8_t* x = dwtopb(addr);
+		std::string to_bytes(int addr) {
+			BYTE* x = dwtopb(addr);
 			char y[16];
 			sprintf_s(y, "%02X%02X%02X%02X", x[0], x[1], x[2], x[3]);
 			std::string res(y);
@@ -1563,7 +1571,7 @@ namespace eyestep {
 		std::string to_bytes(const char* str){
 			std::string x = "";
 			for (int i=0; i<lstrlenA(str); i++){
-				uint8_t c = static_cast<uint8_t>(str[i]);
+				BYTE c = static_cast<BYTE>(str[i]);
 				if (i == lstrlenA(str) - 1)
 					x += to_str(c);
 				else {
@@ -1590,17 +1598,19 @@ namespace eyestep {
 		return word;
 	}
 
-	// Extremely limited for now (just like most beta text parsers)
-	// Read the README file for more info here:
+	// Extremely limited for now (just like most text parsers)
+	// Handles basic instructions.. like:
+	// write(0xDEADBEEF, "push [ebp+8]");
+	// write(0xDEADBEEF+3, "call base+44FE60");
 	// https://github.com/thedoomed/EyeStep/blob/master/README.txt
 	// 
-	inst write(uint32_t address, std::string str, std::vector<label>labels = std::vector<label>()) {
+	inst write(int address, std::string str, std::vector<label>labels = std::vector<label>()) {
 		inst i = inst();
-		uint8_t bytes[16];
+		BYTE bytes[16];
 		
 		std::string s_opcode = "";
 		int at = 0, old_at, bits, sign;
-		uint32_t old_flags;
+		UINT old_flags;
 		while (at < str.length()) {
 			if (str[at] == 0x20) break;
 			s_opcode += str[at++];
@@ -1711,10 +1721,10 @@ namespace eyestep {
 					char x[2];
 					x[0] = src_operand[(at - bits) + 0];
 					x[1] = src_operand[(at - bits) + 1];
-					uint8_t b1 = convert::to_hex(x);
+					BYTE b1 = convert::to_hex(x);
 					x[0] = src_operand[(at - bits) + 2];
 					x[1] = src_operand[(at - bits) + 3];
-					uint8_t b2 = convert::to_hex(x);
+					BYTE b2 = convert::to_hex(x);
 					//printf("adding: %02X, %02X.\n", b1, b2);
 					if (sign == 0) {
 						i.flags |= Fl_src_disp16;
@@ -1765,28 +1775,28 @@ namespace eyestep {
 					i.flags |= Fl_rel32;
 					i.rel32 = i.src.disp32 - (address + 5);
 					bytes[i.len++] = 0xE8;
-					*(uint32_t*)(bytes+i.len) = i.rel32;
+					*(UINT*)(bytes+i.len) = i.rel32;
 					i.len += 4;
 				} else if (s_opcode == "jmp" && i.flags & Fl_src_disp32){
 					// calculate an 8-bit relative jmp
 					if ((i.src.disp32-(address+2)) <= 0x7F || (address-2)-i.src.disp32 <= 0x7F){
 						i.flags |= Fl_rel8;
-						i.rel8 = static_cast<uint8_t>(i.src.disp32-(address+2));
+						i.rel8 = static_cast<BYTE>(i.src.disp32-(address+2));
 						bytes[i.len++] = 0xEB;
 						bytes[i.len++] = i.rel8;
 					} else { // otherwise, calculate a 32-bit relative jmp
 						i.flags |= Fl_rel32;
 						i.rel32 = i.src.disp32 - (address + 5);
 						bytes[i.len++] = 0xE9;
-						*(uint32_t*)(bytes+i.len) = i.rel32;
+						*(UINT*)(bytes+i.len) = i.rel32;
 						i.len += 4;
 					}
 				}
 				else if (s_opcode == "ret" && (i.flags & Fl_src_disp16 || i.flags & Fl_src_disp8)){
-					uint16_t v = i.src.disp16;
-					if (i.flags & Fl_src_disp8) v = static_cast<uint16_t>(i.src.disp8);
+					USHORT v = i.src.disp16;
+					if (i.flags & Fl_src_disp8) v = static_cast<USHORT>(i.src.disp8);
 					bytes[i.len++] = 0xC2;
-					*(uint16_t*)(bytes+i.len) = v;
+					*(USHORT*)(bytes+i.len) = v;
 					i.len += 2;
 				}
 				else if (s_opcode == "push" && !(i.flags & Fl_src_r32)){
@@ -1794,7 +1804,7 @@ namespace eyestep {
 					bytes[i.len++] = 0xFF;
 					if (i.flags & Fl_src_imm32) {
 						bytes[i.len++] = mode + 0x80 + i.src.r32;
-						*(uint32_t*)(bytes+i.len) = i.src.imm32;
+						*(UINT*)(bytes+i.len) = i.src.imm32;
 						i.len += 4;
 					} else if (i.flags & Fl_src_imm8) {
 						bytes[i.len++] = mode + 0x40 + i.src.r32;
@@ -1811,7 +1821,7 @@ namespace eyestep {
 							// calculate short jmp instruction
 							if ((i.src.disp32-(address+2)) <= 0x7F || (address-2)-i.src.disp32 <= 0x7F){
 								i.flags |= Fl_rel8;
-								i.rel8 = static_cast<uint8_t>(i.src.disp32)-(address+2);
+								i.rel8 = static_cast<BYTE>(i.src.disp32)-(address+2);
 								bytes[i.len++] = 0x70 + j;
 								bytes[i.len++] = i.rel8;
 								break;
@@ -1820,7 +1830,7 @@ namespace eyestep {
 								i.rel32 = i.src.disp32-(address+6);
 								bytes[i.len++] = 0x0F;
 								bytes[i.len++] = 0x80 + j;
-								*(uint32_t*)(bytes+i.len) = i.rel32;
+								*(UINT*)(bytes+i.len) = i.rel32;
 								i.len += 4;
 								break;
 							}
@@ -1911,10 +1921,10 @@ namespace eyestep {
 					char x[2];
 					x[0] = src_operand[(at - bits) + 0];
 					x[1] = src_operand[(at - bits) + 1];
-					uint8_t b1 = convert::to_hex(x);
+					BYTE b1 = convert::to_hex(x);
 					x[0] = src_operand[(at - bits) + 2];
 					x[1] = src_operand[(at - bits) + 3];
-					uint8_t b2 = convert::to_hex(x);
+					BYTE b2 = convert::to_hex(x);
 					//printf("adding: %02X, %02X.\n", b1, b2);
 					if (sign == 0) {
 						i.flags |= Fl_src_disp16;
@@ -2025,10 +2035,10 @@ namespace eyestep {
 					char x[2];
 					x[0] = dest_operand[(at - bits) + 0];
 					x[1] = dest_operand[(at - bits) + 1];
-					uint8_t b1 = convert::to_hex(x);
+					BYTE b1 = convert::to_hex(x);
 					x[0] = dest_operand[(at - bits) + 2];
 					x[1] = dest_operand[(at - bits) + 3];
-					uint8_t b2 = convert::to_hex(x);
+					BYTE b2 = convert::to_hex(x);
 					//printf("adding: %02X, %02X.\n", b1, b2);
 					if (sign == 0) {
 						i.flags |= Fl_dest_disp16;
@@ -2089,7 +2099,7 @@ namespace eyestep {
 								bytes[i.len++] = 0xC0 + x;
 							} else if (i.flags & Fl_src_imm32) {
 								bytes[i.len++] = 0x80 + x;
-								*(uint32_t*)(bytes+i.len) = i.src.imm32;
+								*(UINT*)(bytes+i.len) = i.src.imm32;
 								i.len += 4;
 							} else if (i.flags & Fl_src_imm8) {
 								bytes[i.len++] = 0x40 + x;
@@ -2103,7 +2113,7 @@ namespace eyestep {
 								bytes[i.len++] = 0xC0 + i.src.r32;
 							} else if (i.flags & Fl_src_imm32) {
 								bytes[i.len++] = 0x80 + i.src.r32;
-								*(uint32_t*)(bytes+i.len) = i.src.imm32;
+								*(UINT*)(bytes+i.len) = i.src.imm32;
 								i.len += 4;
 							} else if (i.flags & Fl_src_imm8) {
 								bytes[i.len++] = 0x40 + i.src.r32;
@@ -2131,7 +2141,7 @@ namespace eyestep {
 							i.src.r32 *= 8;
 							i.src.r32 += 5;
 							bytes[i.len++] = 0x00 + i.src.r32 + i.dest.r32;
-							*(uint32_t*)(bytes+i.len) = i.dest.disp32;
+							*(UINT*)(bytes+i.len) = i.dest.disp32;
 							i.len += 4;
 						} else {
 							if (s_opcode == "add") bytes[i.len++] = 0x05;
@@ -2144,7 +2154,7 @@ namespace eyestep {
 							if (s_opcode == "cmp") bytes[i.len++] = 0x3D;
 							if (s_opcode == "mov") bytes[i.len++] = 0xB8 + i.src.r32;
 
-							*(uint32_t*)(bytes+i.len) = i.dest.disp32;
+							*(UINT*)(bytes+i.len) = i.dest.disp32;
 							i.len += 4;
 						}
 					// example: mov eax,[eax] or, mov eax,[eax+??]
@@ -2165,7 +2175,7 @@ namespace eyestep {
 							bytes[i.len++] = 0xC0 + i.src.r32 + i.dest.r32;
 						else if (i.flags & Fl_dest_imm32) {
 							bytes[i.len++] = 0x80 + i.src.r32 + i.dest.r32;
-							*(uint32_t*)(bytes+i.len) = i.dest.imm32;
+							*(UINT*)(bytes+i.len) = i.dest.imm32;
 							i.len += 4;
 						} else if (i.flags & Fl_dest_imm8) {
 							bytes[i.len++] = 0x40 + i.src.r32 + i.dest.r32;
@@ -2189,7 +2199,7 @@ namespace eyestep {
 						// dont use 0xC0 as the above takes care of that mode
 						if (i.flags & Fl_src_imm32) {
 							bytes[i.len++] = 0x80 + i.src.r32 + i.dest.r32;
-							*(uint32_t*)(bytes+i.len) = i.src.imm32;
+							*(UINT*)(bytes+i.len) = i.src.imm32;
 							i.len += 4;
 						} else if (i.flags & Fl_src_imm8) {
 							bytes[i.len++] = 0x40 + i.src.r32 + i.dest.r32;
@@ -2212,7 +2222,7 @@ namespace eyestep {
 						i.dest.r32 *= 8;
 						i.dest.r32 += 5;
 						bytes[i.len++] = 0x00 + i.src.r32 + i.dest.r32;
-						*(uint32_t*)(bytes+i.len) = i.src.disp32;
+						*(UINT*)(bytes+i.len) = i.src.disp32;
 						i.len += 4;
 					}
 				}
