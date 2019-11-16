@@ -1,12 +1,3 @@
-// ADDED SUPPORT FOR EXTERNAL APPLICATIONS (.exe)
-// 
-// Removed auto-updater for vftable offsets;
-// soon to be released as a java application or ill keep
-// them updated if they ever change.
-// 
-// Removed concept for replicator from roblox logs
-// (if you like the idea go for it since it's instant)
-// 
 #pragma once
 #include <Windows.h>
 #include <tchar.h>
@@ -26,9 +17,9 @@ namespace instances {
 	int players = 0;
 
 	namespace offsets {
-		BYTE name = 44;
-		BYTE parent = 56;
-		BYTE children_start = 48;
+		BYTE name = 40;
+		BYTE parent = 52;
+		BYTE children_start = 44;
 		BYTE children_end = 4;
 	}
 
@@ -64,7 +55,7 @@ namespace instances {
 	// automatically get all vftables
 	bool fetch() {
 		if (!instances::replicator) {
-			std::vector<int> results = eyestep::util::scan("74??8B??????000085??0F85", ".x.xxx...x..");
+			std::vector<int> results = eyestep::util::scan("74??8B??????000085??0F85", ".x.xxx...x..", 0, 0, 1);
 			if (results.size() != 0) {
 				int RakPeerHook = results[0];
 				BYTE count = 0;
