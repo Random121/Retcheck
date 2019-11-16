@@ -90,7 +90,7 @@ namespace instances {
 int get_lua_state(int script_context) {
 	int lua_state = 0;
 
-	std::vector<int>result_list = eyestep::util::scan("B9000000000F45CA", "........");
+	std::vector<int>result_list = eyestep::util::scan("B9000000000F45CA", "........", 0, 0, 1);
 	if (result_list.size() == 0) {
 		printf("No results for lua state\n");
 	} else {
