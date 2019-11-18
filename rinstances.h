@@ -5,6 +5,7 @@
 #include "eyestep_util.h"
 
 using namespace eyestep;
+using namespace eyestep::util;
 
 // there will be a release soon for my Java program
 // that auto-updates every vftable offset.
