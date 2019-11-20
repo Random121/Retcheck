@@ -1113,19 +1113,19 @@ namespace eyestep {
 		} if (p.flags & Fl_rel8){
 			p.rel8 = *(BYTE*)(b+l);
 			char m[64];
-			sprintf_s(m, "RobloxPlayerBeta.exe+%08X", ((address + l + 1) + p.rel8) - base);
+			sprintf_s(m, "base+%08X", ((address + l + 1) + p.rel8) - base);
 			l += 1;
 			strcat_s(p.data, m);
 		} else if (p.flags & Fl_rel16){
 			p.rel16 = *(USHORT*)(b+l);
 			char m[64];
-			sprintf_s(m, "RobloxPlayerBeta.exe+%08X", ((address + l + 2) + p.rel16) - base);
+			sprintf_s(m, "base+%08X", ((address + l + 2) + p.rel16) - base);
 			l += 2;
 			strcat_s(p.data, m);
 		} else if (p.flags & Fl_rel32){
 			p.rel32 = *(UINT*)(b+l);
 			char m[64];
-			sprintf_s(m, "RobloxPlayerBeta.exe+%08X", ((address + l + 4) + p.rel32) - base);
+			sprintf_s(m, "base+%08X", ((address + l + 4) + p.rel32) - base);
 			l += 4;
 			strcat_s(p.data, m);
 		} else if (p.flags & Fl_src_r8)
@@ -1685,7 +1685,6 @@ namespace eyestep {
 					// continue with offset check
 				} else if (next == "base") {
 					// ... ignore (for a jmp or call basically 
-					// like doing a RobloxPlayerBeta.exe+ but
 					// its easier to do base+)
 					if (str[at] == '+') {
 						sign = 0; // technically we want a disp32 value not an 'offset'
