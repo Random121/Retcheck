@@ -1042,6 +1042,22 @@ namespace eyestep {
 			p.set_op("align");
 			p.flags |= Fl_none;
 			l++;
+		} else if (b[l] == 0xD3){ // *ADD TO EYESTEP C#
+			p.src.pref |= PRE_DWORD_PTR;
+			p.flags |= Fl_src_dest | Fl_src_r32 | Fl_dest_r8;
+
+			int mode = getr1(b, ++l);
+			if (mode == 0)		p.set_op("rol");
+			else if (mode == 1) p.set_op("ror");
+			else if (mode == 2) p.set_op("rcl");
+			else if (mode == 3) p.set_op("rcr");
+			else if (mode == 4) p.set_op("shl");
+			else if (mode == 5) p.set_op("shr");
+			else if (mode == 6) p.set_op("sal");
+			else if (mode == 7) p.set_op("sar");
+
+			p.r_mod = getmode40(b, l);
+			p.dest.r8 = (getr2(b, l) + 1) % 8;
 		} else if (b[l] == 0xE8) {
 			p.set_op("call");
 			p.flags |= Fl_src_only | Fl_rel32;
@@ -1113,19 +1129,19 @@ namespace eyestep {
 		} if (p.flags & Fl_rel8){
 			p.rel8 = *(BYTE*)(b+l);
 			char m[64];
-			sprintf_s(m, "base+%08X", ((address + l + 1) + p.rel8) - base);
+			sprintf_s(m, "RobloxPlayerBeta.exe+%08X", ((address + l + 1) + p.rel8) - base);
 			l += 1;
 			strcat_s(p.data, m);
 		} else if (p.flags & Fl_rel16){
 			p.rel16 = *(USHORT*)(b+l);
 			char m[64];
-			sprintf_s(m, "base+%08X", ((address + l + 2) + p.rel16) - base);
+			sprintf_s(m, "RobloxPlayerBeta.exe+%08X", ((address + l + 2) + p.rel16) - base);
 			l += 2;
 			strcat_s(p.data, m);
 		} else if (p.flags & Fl_rel32){
 			p.rel32 = *(UINT*)(b+l);
 			char m[64];
-			sprintf_s(m, "base+%08X", ((address + l + 4) + p.rel32) - base);
+			sprintf_s(m, "RobloxPlayerBeta.exe+%08X", ((address + l + 4) + p.rel32) - base);
 			l += 4;
 			strcat_s(p.data, m);
 		} else if (p.flags & Fl_src_r8)
@@ -1685,6 +1701,7 @@ namespace eyestep {
 					// continue with offset check
 				} else if (next == "base") {
 					// ... ignore (for a jmp or call basically 
+					// like doing a RobloxPlayerBeta.exe+ but
 					// its easier to do base+)
 					if (str[at] == '+') {
 						sign = 0; // technically we want a disp32 value not an 'offset'
