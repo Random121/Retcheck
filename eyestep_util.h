@@ -426,17 +426,25 @@ namespace eyestep {
 			BYTE b[3];
 			readb(address, &b, 3);
 
-			if (b[0] == 0x55 && b[1] == 0x8B && b[2] == 0xEC) {
+			// push ebp
+			// mov ebp,esp
+			if (address % 16 == 0 && b[0] == 0x55 && b[1] == 0x8B && b[2] == 0xEC)
 				return true;
-			}
-			// some prologues use ESI, but rarely occurs in a function
-			if (b[0] == 0x56 && b[1] == 0x8B && b[2] == 0xF1) {
-				for (int i = 0; i < 0xFFFF; i++) {
+			
+			// push ebx
+			// mov ebx,esp
+			if (address % 16 == 0 && b[0] == 0x53 && b[1] == 0x8B && b[2] == 0xDC)
+				return true;
+
+			// some prologues use ESI, but this can rarely occur in a function
+			if (address % 16 == 0 && b[0] == 0x56 && b[1] == 0x8B && b[2] == 0xF1) {
+				return true;
+				/*for (int i = 0; i < 0xFFFF; i++) {
 					readb(address + i, &b, 2);
 					if (b[0] == 0x5E && (b[1] == 0xC3 || b[1] == 0xC2)) {
 						return true;
 					}
-				}
+				}*/
 			}
 			return false;
 		}
@@ -561,6 +569,14 @@ namespace eyestep {
 			return result_list;
 		}
 
+		// start at the E8 byte
+		int getrel(int addr) {
+			int o = (addr + readi(addr + 1) + 5);
+			if (o % 16 == 0 && o > base && o < base + base_size)
+				return o;
+			return 0;
+		}
+
 		int nextcall(int func, direction d, bool loc = false) {
 			int start = func;
 
@@ -573,29 +589,20 @@ namespace eyestep {
 				if (d == ahead)  start++;
 				if (d == behind) start--;
 			}
+
 			while (!(readb(start) == 0xE8 && !find_in_table(ignore, readb(start - 1)))) {
 				if (d == ahead)  start++;
 				if (d == behind) start--;
 			}
-			int o = (start + readi(start + 1) + 5);
-			if (o % 16 == 0 && o > base && o < base + base_size)
-				if (!loc)
-					return o;
-				else
-					return start;
-			return 0;
-		}
 
-		int getcall(int addr) {
-			int o = (addr + readi(addr + 1) + 5);
-			if (o % 16 == 0 && o > base && o < base + base_size)
-				return o;
-			return 0;
+			int o = getrel(start);
+			if (o != 0) if (loc) o = start;
+			return o;
 		}
 
 		int nextxref(int start, direction d, int func, bool parentfunc = false) {
 			int at = start;
-			while (getcall(at) != func) {
+			while (getrel(at) != func) {
 				int old_at = at;
 				at = nextcall(at, d, true);
 				if (at == 0) {
@@ -967,18 +974,24 @@ namespace eyestep {
 			return values;
 		}
 
+
 		conv getconv(int func) {
 			conv c = conv_cdecl;
-			int eof = nextprologue(func, ahead);
+			if (fretn(func)) c = conv_stdcall;
+
+			// try to determine the convention based on the instructions used
+			int eof = getepilogue(func);
 			int at = func;
 			bool not_fastcall = false;
 			bool neither = false;
-			if (fretn(func)) c = conv_stdcall;
 
 			while (at < eof) {
 				inst i = eyestep::read(at);
 				at += i.len;
-				//printf("%s, %i, %i.\n", i.data, i.src.r32, i.dest.r32);
+
+				//if (func == aslr(0x7605E0)){ // for debugging
+				//	printf("%s, %i, %i.\n", i.data, i.src.r32, i.dest.r32);
+				//}
 				// if edx or ecx was pushed thats an instant indication
 				if (strcmp(i.opcode, "push") == 0) {
 					if (i.src.r32 == ecx) break;//neither = true;
@@ -1015,6 +1028,7 @@ namespace eyestep {
 							// it wont work if there's a push ecx prior to mov ???, edx
 							// even though some __fastcall's/__thiscall's push ecx, fuck knows why
 							return conv_fastcall;
+							break;
 						}
 						// it will take a mov or lea instruction with ecx or edx
 						// to indicate it is NOT a fastcall or thiscall.
@@ -1022,10 +1036,12 @@ namespace eyestep {
 						// and its using it as if it was passed to the function
 						if (i.src.r32 == ecx) neither = true;
 						if (i.src.r32 == edx) not_fastcall = true;
-					} else {
+					}
+					else {
 						if (strcmp(i.opcode, "cmp") == 0 || strcmp(i.opcode, "add") == 0) {
 							if (i.src.r32 == edx && !not_fastcall && !neither) {
 								return conv_fastcall;
+								break;
 							}
 						}
 					}
@@ -1037,6 +1053,7 @@ namespace eyestep {
 					if (i.dest.r32 == edx) {
 						if (!neither && !not_fastcall) {
 							return conv_fastcall;
+							break;
 						}
 					}
 					if (i.dest.r32 == ecx) {
@@ -1045,7 +1062,73 @@ namespace eyestep {
 						}
 					}
 					if (not_fastcall && c == conv_thiscall) {
-						return conv_thiscall;
+						c = conv_thiscall;
+						break;
+					}
+				}
+			}
+
+			// look forward and backwards for an XREF to this function
+			at = func;
+			for (int i = 0; i < 0xFFFF; i++) {
+				if (readb(at - i) == 0xE8) {
+					if (getrel(at - i) == func) {
+						at = at - i;
+						break;
+					}
+				} else if (readb(at + i) == 0xE8){
+					if (getrel(at + i) == func) {
+						at = at + i;
+						break;
+					}
+				}
+			}
+
+			if (at != func) {
+				int pos = at;
+				// back up to a decent point
+				// to start properly disassembling
+				int i = 0;
+				while (i < 24) {
+					at--, i++;
+					if (isprologue(at)) {
+						at += 3;
+						break;
+					}
+					if (i > 4) {
+						if (readb(at) == 0xE8 || readb(at) == 0xE9) {
+							at += 5;
+							break;
+						}
+					}
+				}
+
+				std::vector<eyestep::inst> p = std::vector<eyestep::inst>();
+				i = 0;
+				while (at < pos) {
+					eyestep::inst j = eyestep::read(at);
+					p.push_back(j);
+					at += j.len;
+				}
+
+				std::reverse(p.begin(), p.end());
+
+				// Check the first 3 instructions...
+				// This should be improved but 99% of the fastcall
+				// functions are 2-3 args anyway.
+				for (i = 0; i < 3; i++) {
+					if (strcmp(p[i].data, "push edx") == 0) break;
+					if (strcmp(p[i].data, "push ecx") == 0) break;
+					if (p[i].rel32 > 0 || p[i].rel16 > 0 || p[i].rel8 > 0) break;
+
+					if (p[i].flags & Fl_src_dest) {
+						if (p[i].src.r32 == reg_32::edx) {
+							c = conv_fastcall;
+							break;
+						}
+						if (p[i].src.r32 == reg_32::ecx) {
+							c = conv_thiscall;
+						}
 					}
 				}
 			}
@@ -1077,6 +1160,99 @@ namespace eyestep {
 		// gets a calling convention of a function as a string
 		const char* getsconv(int func) {
 			return getsconv(getconv(func));
+		}
+
+		// -#-#-#-#- transform_cdecl -#-#-#-#-
+		//
+		// 1st Arg is your function, 2nd Arg put a table of int values
+		// (for each 32-bit arg put 32, and for each 64-bit arg for 64)
+		// (for byte/char/short/int/long you would just put 32)
+		// 
+		// This returns a new routine for that function,
+		// which is a __cdecl.
+		// You can now keep your typedef a __cdecl for that function
+		// and this will ensure that it is ALWAYS called as a __cdecl
+		// as long as the accuracy of the calling convention determiner
+		// is at 100%.
+		// 
+		// Every time a calling convention is wrong, I've only
+		// improved the code for determining it.
+		// 
+		// If, for example, roblox's lua_pushvalue was a __fastcall,
+		// you can now do this:
+		// 
+		// typedef void(__cdecl* T_lua_pushvalue)(int rL, int id);
+		// T_lua_pushvalue r_pushvalue = (T_lua_pushvalue)transform_cdecl(retcheck::patch(aslr(addr)), {32,32}, getconv(addr));
+		// 
+		// Leave out the _conv arg when using this function
+		// unless you want to specify the convention manually.
+		// 
+		int transform_cdecl(int func, std::vector<int> args, conv _conv = 0xF) {
+			BYTE cc = _conv;
+			if (cc == 0xF) cc = getconv(func);
+			if (cc == conv_cdecl) return func;
+
+			int routine = valloc(0, 128);
+			int at = routine;
+			int arg = 0;
+
+			at += eyestep::write(at, "push ebp").len;
+			at += eyestep::write(at, "mov ebp,esp").len;
+			at += eyestep::write(at, "xor eax,eax").len;
+
+			if ((cc == conv_fastcall || cc == conv_thiscall) && args.size() >= 1) {
+				at += eyestep::write(at, "mov ecx,[ebp+08]").len;
+				arg = 1;
+			}
+			if (cc == conv_fastcall && args.size() >= 2) {
+				at += eyestep::write(at, "mov edx,[ebp+0C]").len;
+				arg = 2;
+			}
+
+			int top = args.size();
+			while (top > arg) {
+				top--;
+				BYTE bits = args[top];
+				BYTE o = (8 + (top * 4));
+				if (bits == 32) {
+					// pushes a 32-bit arg
+					char c_arg[8];
+					sprintf_s(c_arg, "%02X", o);
+					at += eyestep::write(at, "push [ebp+" + std::string(c_arg) + "]").len;
+				}
+				else if (bits == 64) {
+					// handles pushing a 64-bit arg
+					*(BYTE*)(at++) = 0xF2; // movsd xmm0, qword ptr [ebp+o]
+					*(BYTE*)(at++) = 0x0F;
+					*(BYTE*)(at++) = 0x10;
+					*(BYTE*)(at++) = 0x45;
+					*(BYTE*)(at++) = o;
+					*(BYTE*)(at++) = 0x83; // sub esp,8
+					*(BYTE*)(at++) = 0xEC;
+					*(BYTE*)(at++) = 0x08;
+					*(BYTE*)(at++) = 0xF2; // movsd qword ptr [esp],xmm0
+					*(BYTE*)(at++) = 0x0F;
+					*(BYTE*)(at++) = 0x11;
+					*(BYTE*)(at++) = 0x04;
+					*(BYTE*)(at++) = 0x24;
+				}
+			}
+
+			at += eyestep::write(at, "call " + convert::to_str(func)).len;
+			at += eyestep::write(at, "pop ebp").len;
+			at += eyestep::write(at, "retn").len;
+
+			int size = at - routine;
+			for (int i = 0; i < (size + 16) % 16; i++) {
+				at += eyestep::write(at, "int3").len;
+			}
+
+			return routine;
+		}
+
+		// cleans up routines generated from transform_cdecl
+		int free_routine(int func) {
+			vfree(func, 128);
 		}
 
 		// Get process PEB
