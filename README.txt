@@ -1,5 +1,6 @@
-# UPDATES
- 
+# UPDATES (please excuse githubs gay formatting)
+
+
 I finally did some organizing, though it's probably even messier than before. 
  
  
