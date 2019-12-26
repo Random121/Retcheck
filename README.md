@@ -2,17 +2,14 @@
 
 I finally did some organizing, though it's probably even messier than before.
 
+
 But the good news is, I got the code separated into both .h and .cpp.
-
 The bad news is, even though it is better this way, you now
-
 need to include both eyestep.h and eyestep.cpp.
 
 
 Extra files (not required to use eyestep) are:
-
 eyestep_util.h, peb.h and eyestep_util.cpp (These 3 must also be used altogether),
-
 retcheck.h,
 
 
