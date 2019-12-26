@@ -10,9 +10,7 @@ need to include both eyestep.h and eyestep.cpp.
  
  
 Extra files (not required to use eyestep) are: 
-
 eyestep_util.h, peb.h and eyestep_util.cpp (These 3 must also be used altogether), 
-
 retcheck.h, 
  
 
@@ -43,26 +41,12 @@ Please note that "direction" can be direction::ahead, or direction::behind.
 this determines if it will look forwards or backwards starting at "function".
 
 nextprologue(function, direction);    goes to the start address of the very next function
-
-
 nextcall(function, direction);        goes to the very next call instruction, returns the call function
-
-
 getcalls(function);                   gets all calls used in a function; returns those functions in a list.
-
-
 fsize(function);                      returns the overall size of a function in bytes
-
-
 fretn(function);                      returns the stack size ret'd at the end of a function
-
-
 getconv(function);                    returns the calling convention of a function (as an ID; e.g. 1 = conv_stdcall).
-
-
 getsconv(conv);                       translates a convention ID to a string, e.g. 1 --> "stdcall"
-
-
 debug(address, register, offset);     Places a hook, reading the value of [register+offset] at address. For example, if we have a mov ecx,[ebp+8] instruction at 0x12000000, and we do this: uint32_t x=debug(0x12000000, ebp, 8), as soon as that instruction is executed, you will have the value at the offset 8 from ebp. The hook is removed instantly after, preventing detection.
 
 
@@ -120,25 +104,15 @@ We'll pretend esi is lua state, and we know this instruction uses the top offset
 how can we grab the +8 which is going to be the offset to lua state's "top" property?
 
 // first we read it with eyestep
-
 eyestep::inst i = eyestep::read(0x847EFB);
-
 // then, we can check if the instruction here has both operands (it does)
-
 if (i.flags & Fl_src_dest){
-
   // then, we can check if the destination (second) operand uses an 8 bit offset ("imm8")
-  
   if (i.flags & Fl_dest_imm8){
-
     // Now we know it uses an 8 bit offset; let's figure out what the offset is
-    
     uint8_t offset = i.dest.imm8;
-    
     printf("offset: +%i\n", offset); // offset: +8
-
   }
-  
 }
 
 
@@ -146,19 +120,11 @@ Notes:
 
 
 i.src and i.dest have the exact same properties;
-
 they are the first and second part of most instructions.
-
 Here's an explanation of their properties:
-
 dest.imm8 is an 8 bit(1 byte) offset from a register if there is one. (like mov eax,[edi+3C])
-
 dest.imm32 is a 32 bit(4 byte/int) offset from a register if there is one. (like mov eax,[edi+0028CDBE])
-
 dest.disp8 is an 8 bit(1 byte) fixed value. (like mov eax,3C)
-
 dest.disp32 is a 32 bit(4 byte/int) fixed value. (like mov eax,0028CDBE)
-
 dest.r32 is the first 32-bit register in the destination operand
-
 dest.r_2 is the second register in the destination operand, following the same bit-size as the first one.
