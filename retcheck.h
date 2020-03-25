@@ -1,4 +1,6 @@
 #pragma once
+#include <Windows.h>
+#include <vector>
 
 namespace retcheck {
 	union func_data {
@@ -8,34 +10,40 @@ namespace retcheck {
 
 	std::vector<func_data> functions;
 
-	int patch(int func_start) {
+	int patch(int func_start, bool clone_regardless = false) {
 		int func_end = func_start + 3;
-		while (!(*(BYTE*)func_end == 0x55 && *(USHORT*)(func_end + 1) == 0xEC8B)) {
+
+		while (!(*(BYTE*)func_end == 0x55 && *(WORD*)(func_end + 1) == 0xEC8B)) {
 			func_end++;
 		}
+
 		int func_size = func_end - func_start;
-		int retcheck_at = func_start;
+		int func_at = func_start;
+		int retcheck_at = 0;
 
 		BYTE check[8];
-		while (retcheck_at < func_end) {
-			memcpy(&check, reinterpret_cast<void*>(retcheck_at), 8);
+
+		while (func_at < func_end) {
+			memcpy(&check, reinterpret_cast<void*>(func_at), 8);
+
 			// find retcheck signature
 			if (check[0] == 0x72 && check[2] == 0xA1 && check[7] == 0x8B) {
-				retcheck_at = retcheck_at - func_start;
+				retcheck_at = func_at - func_start;
 				break;
 			}
-			retcheck_at++;
+			func_at++;
 		}
 
-		if (retcheck_at == 0) {
+		if (retcheck_at == 0 && !clone_regardless) {
 			return func_start;
-		}
-		else {
-			// if there is retcheck . . .
+		} else {
+			// if there is retcheck or we just want a copied function . . .
 			func_size = func_end - func_start;
 			int func = reinterpret_cast<int>(VirtualAlloc(nullptr, func_size, 0x1000 | 0x2000, 0x40));
-			int jmpstart = func + retcheck_at + 2;
-			int newjmpdist = 0;
+			if (func == 0) {
+				printf("RETCHECK FAILED FOR %08X\n", func_start);
+				return func_start;
+			}
 
 			BYTE* data = new BYTE[func_size];
 			memcpy(data, reinterpret_cast<void*>(func_start), func_size);
@@ -56,8 +64,10 @@ namespace retcheck {
 				i++;
 			}
 
-			// jump to the epilogue
-			data[retcheck_at] = 0xEB;
+			if (retcheck_at != 0) {
+				// jump to the epilogue
+				data[retcheck_at] = 0xEB;
+			}
 
 			// write modified bytes to our new function
 			memcpy(reinterpret_cast<void*>(func), data, func_size);
@@ -68,7 +78,6 @@ namespace retcheck {
 			rdata.address = func;
 			rdata.size = func_size;
 			functions.push_back(rdata);
-
 			return func;
 		}
 	}
@@ -76,7 +85,7 @@ namespace retcheck {
 	// clean up for all retcheck functions
 	void flush() {
 		for (int i = 0; i < functions.size(); i++) {
-			VirtualFree(reinterpret_cast<void*>(functions.at(i).address), functions.at(i).size, MEM_RELEASE);
+			VirtualFree(reinterpret_cast<void*>(functions.at(i).address), 0, MEM_RELEASE);
 		}
 	}
 }
