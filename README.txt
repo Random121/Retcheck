@@ -18,7 +18,7 @@ printf("Disassembly: %s.\n", i.data);
 
 
 Let's say you want to list all offsets of the ESI register,
-for the first 20 instructions in a function:
+within the first 20 instructions in a function:
 
 int at = 0xDEADBEEF; // function address
 for (int j = 0; j < 20; j++) {
