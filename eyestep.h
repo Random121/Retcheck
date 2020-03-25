@@ -1,5 +1,5 @@
 // 
-// static/threaded/threadings' x86 disassembler, copyright 2019
+// static's x86 disassembler, copyright 2020
 // 
 #ifndef H_EYESTEP
 #define H_EYESTEP
@@ -80,17 +80,7 @@
 #define asm_out_offs_4b			0x10
 
 namespace eyestep {
-	extern bool DLL_MODE;
-	extern void* handle;
 	extern int base;
-	extern int base_size;
-
-	int from_base(int addr);
-	int base_start();
-	int base_end();
-	int aslr(int addr); // resolves an address from IDA pro(0x400000 base) to current process
-	int unaslr(int addr); // does vice versa of the aslr() function
-	void use(void* x = GetCurrentProcess()); // Opens a process; call this before ANYTHING ELSE
 
 	namespace convert {
 		// used for translating or converting hex-to-text, etc. and vice versa
@@ -154,66 +144,23 @@ namespace eyestep {
 		operand dest;
 	};
 
-	class label {
-	public:
-		label();
-		label(char* x, UINT y, USHORT size = 0);
-		~label();
-
-		char name[64];
-		int address;
-	};
-
 	enum reg_8	 {  al,    cl,    dl,    bl,    ah,    ch,    dh,    bh   };
-	extern const char* c_reg_8[8];
-
 	enum reg_16	 {  ax,    bx,    cx,    dx,    sp,    bp,    si,    di   };
-	extern const char* c_reg_16[8];
-
 	enum reg_32	 {  eax,   ecx,   edx,   ebx,   esp,   ebp,   esi,   edi  };
-	extern const char* c_reg_32[8];
-
 	enum reg_xmm {  xmm0,  xmm1,  xmm2,  xmm3,  xmm4,  xmm5,  xmm6,  xmm7 };
+	enum conds   { o, no, b, nb, e, ne, na, a, s, ns, p, np, l, nl, le, g };
+	
+	extern const char* c_reg1;
+	extern const int* c_reg2;
+	extern const char* c_reg_8[8];
+	extern const char* c_reg_16[8];
+	extern const char* c_reg_32[8];
 	extern const char*c_reg_xmm[8];
-
-	enum conds	 {  o,   no,   b,   nb,   e,   ne,   na,   a,   s,   ns,   p,   np,   l,   nl,   le,   g  };
 	extern const char* c_conds[16];
-
 	const BYTE mults[] = { 0, 2, 4, 8 };
-
+	
 	// Returns the equivalent x86 instruction at the given address
-	inst read(int address);
-
-	// if "end" exceeds the base address of the process,
-	// it reads all the instructions from begin, to end.
-	// if "end" is below the base address of the process,
-	// it reads that many instructions starting at "begin"
-	//
-	// returns all of the instructions in an std::vector
-	//
-	std::vector<inst> read(int begin, int end);
-
-	// if "end" exceeds the base address of the process,
-	// it reads all the instructions from begin, to end.
-	// if "end" is below the base address of the process,
-	// it reads that many instructions starting at "begin"
-	//
-	// returns all the instructions as a viewable string.
-	//
-	std::string sread(int begin, int end);
-
-	// Extremely limited for now (just like most text parsers)
-	// Handles basic instructions.. like:
-	// write(0xDEADBEEF, "push [ebp+8]");
-	// write(0xDEADBEEF+3, "call base+44FE60");
-	// https://github.com/thedoomed/EyeStep/blob/master/README.txt
-	// 
-	inst write(int address, std::string str, std::vector<label>labels = std::vector<label>());
-
-	// used to assist the ASM writing parser
-	bool isnumber(char c);
-	bool isalphabet(char c);
-	std::string nextword(std::string str, int& at);
+	inst read(int);
 }
 
 #endif
