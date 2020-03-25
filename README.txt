@@ -22,17 +22,17 @@ for the first 20 instructions in a function:
 
 int at = 0xDEADBEEF; // function address
 for (int j = 0; j < 20; j++) {
-		eyestep::inst i = eyestep::read(at);
-  
-  // printf("%s\n", i.data); 
-  // /\ uncomment if you want to view all 20 instructions
-  
-		if (i.flags & Fl_dest_imm8){ // does this instruction have a BYTE sized(imm8) offset in the `dest` operand?
-    if (i.dest.r32 == eyestep::reg_32::esi) { // does the `dest` operand use the ESI register?
-			   printf("%i.\n", i.dest.imm8); // then display the offset!
+    eyestep::inst i = eyestep::read(at);
+    
+    // printf("%s\n", i.data); 
+    // /\ uncomment if you want to view all 20 instructions
+    
+    if (i.flags & Fl_dest_imm8){ // does this instruction have a BYTE sized(imm8) offset in the `dest` operand?
+        if (i.dest.r32 == eyestep::reg_32::esi) { // does the `dest` operand use the ESI register?
+            printf("%i.\n", i.dest.imm8); // then display the offset!
+        }
     }
-		}
-		at += i.len; // move to next instruction
+    at += i.len; // move to next instruction
 }
 
 
