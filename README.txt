@@ -1,7 +1,9 @@
 This is EyeStep's final release.
+It is now purely designed for internal/DLL application.
 
 I made EyeStep to be the smallest, portable yet accurate
 disassembler for x86 machine code.
+
 
 The intention was to dump structs from memory by
 being able to easily read offsets within the instruction.
@@ -11,6 +13,8 @@ Addresses in memory are translated to asm like so:
 eyestep::inst i = eyestep::read(0xBADF00D);
 printf("Disassembly: %s.\n", i.data);
 // i is automatically freed up afterwards
+
+
 
 
 Let's say you want to list all offsets of the ESI register,
