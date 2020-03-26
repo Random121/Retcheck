@@ -161,13 +161,15 @@ convert:        if (x[id] > 0x60) n = x[id] - 0x57; // n = A-F (10-16)
     // ---------------------------------------------------------------------------
     // - if stopatresult is set to a number, scanning will end at that result.
     // 
-    // - if `scanchecks` are present, these will go through a series of
-    // checks after the initial scan.
-    // this way, you don't need to scan a bunch of results,
-    // and go through them to check if maybe +8 from the result is 0x01 or whatever.
-    // 
-    // this can make for an extremely fast and efficient single-result scan
-    // by checking the right places and expecting only one result.
+    // - if `scanchecks` are present, it will go through a series of
+    // checks after the initial scan, pinpointing it to a single result.
+    // Basically, you can scan a tiny AOB and then simply add a
+    // "check" to ensure that, for example, +8 of the result would be
+    // a 0x8B byte.
+    // However, because it does this check after the initial AOB scan,
+    // for each result, /while/ it's scanning, the scan will be
+    // extremely fast and effective.
+    // Especially if you have it stop at the first result.
     // 
     // - if vmscan is set to true, it will scan virtual memory.
     // Otherwise, it is restricted to the .text section of the process
