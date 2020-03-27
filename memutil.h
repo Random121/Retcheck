@@ -131,6 +131,11 @@ namespace memutil {
 	}
 
 	namespace conventions {
+		// Use this on functions that you know will have a changing
+		// calling convention. By providing the number of args that
+		// you know the function would typically take, it can determine
+		// the calling convention with 100% accuracy.
+		// 
 		const char* get(int func, int n_Expected_Args) {
 			const char* conv = nullptr;
 
