@@ -2,7 +2,6 @@
 #include <Windows.h>
 #include <stdio.h>
 #include <string>
-#include "retcheck.h"
 #include "eyestep.h"
 
 namespace memutil {
