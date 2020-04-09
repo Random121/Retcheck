@@ -3,7 +3,7 @@
 #include <vector>
 
 
-enum scancheck_type {
+enum {
     scancheck_byte_equal,
     scancheck_word_equal,
     scancheck_int_equal,
@@ -15,14 +15,14 @@ enum scancheck_type {
 namespace memscan {
     class scancheck {
     public:
-        scancheck(scancheck_type _type, int _offset, long long _v) {
-            type = _type;
-            offset = _offset;
-            v = _v;
+        scancheck(int scancheck_type, int o, long long value) {
+            type = scancheck_type;
+            offset = o;
+            v = value;
         };
         ~scancheck() {};
 
-        scancheck_type type;
+        int type;
         int offset;
         long long v;
     };
@@ -59,18 +59,18 @@ namespace memscan {
             pop eax;
         }
 
-        // look for ".rda" marker
-        while (*(int*)rdata != 0x6164722E) rdata++;
+        // look for ".rdata" marker
+        while (!(*(int*)rdata == 0x6164722E)) rdata++;
         rdata += 12;
-        rdata = *(int*)rdata + start;
-        end = rdata - 0x4000; // avoid the NOACCESS region before .rdata
+        rdata = *(DWORD*)rdata + start;
+        end = rdata - (0x4000 *2); // avoid the NOACCESS region before .rdata
 
         //printf("RobloxPlayerBeta.exe+%08X.\n", end - start);
 
         if (vmscan) {
             protection = PAGE_EXECUTE_READWRITE | PAGE_READWRITE;
             // Restrict scan to virtual memory
-            start = end + 0x400000; // skip past (hopefully) all of .rdata
+            start = end + 0x1FFFFFF; // So skip past (presumably) all of .rdata
             end = 0x3FFFFFFF;
         }
 
@@ -106,7 +106,7 @@ convert:        if (x[id] > 0x60) n = x[id] - 0x57; // n = A-F (10-16)
 
         while (start < end && VirtualQuery((void*)start, &mbi, sizeof(mbi))) {
         // Make sure the memory is committed, matches our protection, and isn't PAGE_GUARD.
-            if ((mbi.State & MEM_COMMIT) && (mbi.Protect & protection) && !(mbi.Protect & PAGE_GUARD) && !(mbi.Protect & PAGE_NOACCESS)) {
+            if ((mbi.State & MEM_COMMIT) && (mbi.Protect & protection) && !(mbi.Protect & PAGE_GUARD || mbi.Protect & PAGE_NOACCESS)) {
                 // Scan all the memory in the region.
                 for (DWORD i = (DWORD)mbi.BaseAddress; i < (DWORD)mbi.BaseAddress + mbi.RegionSize; i += alignment) {
                     if (compare((BYTE*)i, pattern, mask)) {
@@ -142,7 +142,7 @@ convert:        if (x[id] > 0x60) n = x[id] - 0x57; // n = A-F (10-16)
                                 results.push_back(i);
                             }
                         }
-                        if (stopatresult > 0 && results.size() >= stopatresult) {
+                        if (stopatresult > 0 && (int)results.size() >= stopatresult) {
                             break;
                         }
                     }
@@ -161,15 +161,13 @@ convert:        if (x[id] > 0x60) n = x[id] - 0x57; // n = A-F (10-16)
     // ---------------------------------------------------------------------------
     // - if stopatresult is set to a number, scanning will end at that result.
     // 
-    // - if `scanchecks` are present, it will go through a series of
-    // checks after the initial scan, pinpointing it to a single result.
-    // Basically, you can scan a tiny AOB and then simply add a
-    // "check" to ensure that, for example, +8 of the result would be
-    // a 0x8B byte.
-    // However, because it does this check after the initial AOB scan,
-    // for each result, /while/ it's scanning, the scan will be
-    // extremely fast and effective.
-    // Especially if you have it stop at the first result.
+    // - if `scanchecks` are present, these will go through a series of
+    // checks after the initial scan.
+    // this way, you don't need to scan a bunch of results,
+    // and go through them to check if maybe +8 from the result is 0x01 or whatever.
+    // 
+    // this can make for an extremely fast and efficient single-result scan
+    // by checking the right places and expecting only one result.
     // 
     // - if vmscan is set to true, it will scan virtual memory.
     // Otherwise, it is restricted to the .text section of the process
