@@ -13,13 +13,13 @@ namespace retcheck {
 	int patch(int func_start, bool clone_regardless = false) {
 		int func_end = func_start + 3;
 
-		while (!(*(BYTE*)func_end == 0x55 && *(WORD*)(func_end + 1) == 0xEC8B)) {
+		while (!(*(BYTE*)func_end == 0x55 && *(WORD*)(func_end + 1) == 0xEC8B)){
 			func_end++;
 		}
 
 		int func_size = func_end - func_start;
 		int func_at = func_start;
-		int retcheck_at = 0;
+		std::vector<int>retchecks;
 
 		BYTE check[8];
 
@@ -28,15 +28,22 @@ namespace retcheck {
 
 			// find retcheck signature
 			if (check[0] == 0x72 && check[2] == 0xA1 && check[7] == 0x8B) {
-				retcheck_at = func_at - func_start;
-				break;
+				retchecks.push_back(func_at - func_start);
+				func_at += 8;
+				continue;
 			}
+
 			func_at++;
 		}
 
-		if (retcheck_at == 0 && !clone_regardless) {
+
+
+		if (retchecks.size() == 0 && !clone_regardless)
+		{
 			return func_start;
-		} else {
+		}
+		else
+		{
 			// if there is retcheck or we just want a copied function . . .
 			func_size = func_end - func_start;
 			int func = reinterpret_cast<int>(VirtualAlloc(nullptr, func_size, 0x1000 | 0x2000, 0x40));
@@ -64,9 +71,9 @@ namespace retcheck {
 				i++;
 			}
 
-			if (retcheck_at != 0) {
+			for (int i : retchecks){
 				// jump to the epilogue
-				data[retcheck_at] = 0xEB;
+				data[i] = 0xEB;
 			}
 
 			// write modified bytes to our new function
@@ -84,7 +91,7 @@ namespace retcheck {
 
 	// clean up for all retcheck functions
 	void flush() {
-		for (int i = 0; i < functions.size(); i++) {
+		for (size_t i = 0; i < functions.size(); i++) {
 			VirtualFree(reinterpret_cast<void*>(functions.at(i).address), 0, MEM_RELEASE);
 		}
 	}
