@@ -114,9 +114,6 @@ const char* getConvention(DWORD func, size_t n_Expected_Args)
  * This function is highly optimized in its output
  * and it isn't going to affect the speed of your
  * exploit in any shape or form.
- *
- * Enjoy never giving a crap about your typedef's again, like me.
- *
 */
 int createRoutine(int function, int n_expected_args) 
 {
