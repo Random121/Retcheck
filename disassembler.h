@@ -1,39 +1,88 @@
-#include "eyestep.h"
+#ifndef H_DISASSEMBLER
+#define H_DISASSEMBLER
 
-namespace eyestep {
-	// set if you want accurate jmp/call translation
-	extern int base = 0;
+#include <Windows.h>
+#include <string>
+#include <vector>
 
-	// for visuals / text translation
-	extern const char* c_reg_8[8]  = { "al",  "cl",  "dl",  "bl",  "ah",  "ch",  "dh",  "bh" };
-	extern const char* c_reg_16[8] = { "ax",  "bx",  "cx",  "dx",  "sp",  "bp",  "si",  "di" };
-	extern const char* c_reg_32[8] = { "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi" };
-	extern const char*c_reg_xmm[8] = { "xmm0","xmm1","xmm2","xmm3","xmm4","xmm5","xmm6","xmm7" };
-	extern const char* c_conds[16] = { "o", "no", "b", "nb", "e", "ne", "na", "a", "s", "ns", "p", "np", "l", "nl", "le", "g" };
-	extern const char c_ref1[16]   = { '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F' };
-	extern const int  c_ref2[16]   = {  0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15 };
+#define Fl_none					0x00000000
+#define Fl_src_only				0x10000000
+#define Fl_src_dest				0x20000000
 
+#define Fl_src_r8				0x00000001
+#define Fl_src_r16				0x00000002
+#define Fl_src_r32   			0x00000004
+#define Fl_src_imm8				0x00000008
+#define Fl_src_imm16			0x00000010
+#define Fl_src_imm32   			0x00000020
+#define Fl_src_rm8				0x00000040
+#define Fl_src_rm16				0x00000080
+#define Fl_src_rm32				0x00000100
+#define Fl_src_rxmm				0x00000200
+#define Fl_src_disp8			0x00000400
+#define Fl_src_disp16			0x00000800
+#define Fl_src_disp32			0x00001000
+
+#define Fl_dest_r8				0x00002000
+#define Fl_dest_r16				0x00004000
+#define Fl_dest_r32   			0x00008000
+#define Fl_dest_imm8			0x00010000
+#define Fl_dest_imm16			0x00020000
+#define Fl_dest_imm32   		0x00040000
+#define Fl_dest_rm8				0x00080000
+#define Fl_dest_rm16			0x00100000
+#define Fl_dest_rm32			0x00200000
+#define Fl_dest_rxmm			0x00400000
+#define Fl_dest_disp8			0x00800000
+#define Fl_dest_disp16			0x40000000
+#define Fl_dest_disp32			0x80000000
+
+#define Fl_rel8					0x01000000
+#define Fl_rel16				0x02000000
+#define Fl_rel32				0x04000000
+
+#define Fl_condition			0x08000000
+
+#define PRE_BYTE_PTR			0x1
+#define PRE_WORD_PTR			0x2
+#define PRE_DWORD_PTR			0x4
+#define PRE_QWORD_PTR			0x8
+
+#define pre_repne   			0x1
+#define pre_repe   				0x2
+#define pre_66   				0x4
+#define pre_67   				0x8
+#define pre_lock 				0x10
+#define pre_seg  				0x20
+#define seg_cs					0x2E
+#define seg_ss					0x36
+#define seg_ds					0x3E
+#define seg_es					0x26
+#define seg_fs					0x64
+#define seg_gs					0x65
+
+
+#define addoff8(s,b,l,v)		char m[16]; v=*(uint8_t*)(b+l); (v<=0x7F)		? sprintf_s(m,"+%02X",v) : sprintf_s(m,"-%02X",(0xFF+1)-v);			strcat_s(s,m); l+=1
+#define addoff16(s,b,l,v)		char m[16]; v=*(uint16_t*)(b+l);(v<=0x7FFF)		? sprintf_s(m,"+%04X",v) : sprintf_s(m,"-%04X",(0xFFFF+1)-v);		strcat_s(s,m); l+=2
+#define addoff32(s,b,l,v)		char m[16]; v=*(uint32_t*)(b+l);(v<=0x7FFFFFFF)	? sprintf_s(m,"+%08X",v) : sprintf_s(m,"-%08X",(0xFFFFFFFF+1)-v);	strcat_s(s,m); l+=4
+#define getr1(b,l)				(b[l] % 64 / 8)
+#define getr2(b,l)				(b[l] % 64 % 8)
+#define getmode20(b,l)			(b[l] / 0x20)
+#define getmode40(b,l)			(b[l] / 0x40)
+
+#define asm_out_none			0x0
+#define asm_out_strings			0x1
+#define asm_out_offs_1b			0x2
+#define asm_out_offs_2b			0x4
+#define asm_out_offs_4b			0x10
+
+#define cvt_to_short(a,b)		short	(b << 8 | a)
+#define cvt_to_int(a,b,c,d)		int		(a << 24 | b << 16 | c << 8 | d)
+
+namespace disassembler {
 	namespace convert {
-		short to_short(BYTE a, BYTE b) {
-			short v = b;
-			v <<= 8;
-			v |= a;
-			return v;
-		}
-
-		int to_int(BYTE a, BYTE b, BYTE c, BYTE d) {
-			return int(a << 24 | b << 16 | c << 8 | d);
-		}
-
-		int pbtodw(BYTE* b) {
-			return (b[0]) | (b[1] << 8) | (b[2] << 16) | (b[3] << 24);
-		}
-
-		BYTE* dwtopb(UINT v) {
-			BYTE* data = new BYTE[4];
-			memcpy(data, &v, 4);
-			return data;
-		}
+		const char c_ref1[16] = { '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F' };
+		const int  c_ref2[16] = {  0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15 };
 
 		// translation
 		BYTE to_hex(char* x) {
@@ -72,11 +121,12 @@ namespace eyestep {
 			c3[0] = addr[4], c3[1] = addr[5];
 			c4[0] = addr[6], c4[1] = addr[7];
 
-			return static_cast<int>(to_int(to_hex(c1), to_hex(c2), to_hex(c3), to_hex(c4)));
+			return static_cast<int>(cvt_to_int(to_hex(c4), to_hex(c3), to_hex(c2), to_hex(c1)));
 		}
 
 		std::string to_bytes(int addr) {
-			BYTE* x = dwtopb(addr);
+			BYTE* x = new BYTE[4];
+			memcpy(x, &addr, 4);
 			char y[16];
 			sprintf_s(y, "%02X%02X%02X%02X", x[0], x[1], x[2], x[3]);
 			std::string res(y);
@@ -99,89 +149,283 @@ namespace eyestep {
 		}
 	}
 
-	inst::inst() {
-		data[0] = '\0';
-		opcode[0] = '\0';
-
-		address = 0;
-		len = 0; // defaults to 1 if it cant translate an instruction
-		pref = 0;
-		flags = 0;
-		rel8 = 0;
-		rel16 = 0;
-		rel32 = 0;
-		p_rep = 0;
-		p_lock = 0;
-		p_seg = 0;
-		r_mod = 0;
-		condition = 0;
-
-		src.r8 = 0;
-		src.r16 = 0;
-		src.r32 = 0;
-		src.rxmm = 0;
-		src.r_2 = 0;
-		src.mul = 0;
-		src.imm8 = 0;
-		src.imm16 = 0;
-		src.imm32 = 0;
-		src.disp8 = 0;
-		src.disp16 = 0;
-		src.disp32 = 0;
-		src.pref = 0;
-
-		dest.r8 = 0;
-		dest.r16 = 0;
-		dest.r32 = 0;
-		dest.rxmm = 0;
-		dest.r_2 = 0;
-		dest.mul = 0;
-		dest.imm8 = 0;
-		dest.imm16 = 0;
-		dest.imm32 = 0;
-		dest.disp8 = 0;
-		dest.disp16 = 0;
-		dest.disp32 = 0;
-		dest.pref = 0;
+	class operand {
+	public:
+		BYTE r8; // 8 bit register
+		BYTE r16; // 16 bit register
+		BYTE r32; // 32 bit register
+		BYTE rxmm; // 64 bit register
+		BYTE r_2; // second register in source operand (same bit type as others) (use discretion/no flag indicator yet)
+		BYTE mul; // multiplier (0 by default, if there is a multiplier it wont be 0)
+		BYTE imm8; // 8 bit offset value
+		USHORT imm16; // 16 bit offset value
+		UINT imm32; // 32 bit offset value
+		BYTE disp8;
+		USHORT disp16;
+		UINT disp32; // a fixed value (not an 'offset' (+/-))
+		BYTE pref; // prefix for this operand (byte/dword/qword ptr, etc.)
 	};
 
-	inst::~inst() {};
 
-	void inst::set_op(const char* x) {
-		strcpy_s(opcode, x);
-		strcat_s(data, x);
-		strcat_s(data, " ");
-	}
+	class inst {
+	public:
+		inst() {
+			data[0] = '\0';
+			opcode[0] = '\0';
 
+			address = 0;
+			len = 0; // defaults to 1 if it cant translate an instruction
+			pref = 0;
+			flags = 0;
+			rel8 = 0;
+			rel16 = 0;
+			rel32 = 0;
+			p_rep = 0;
+			p_lock = 0;
+			p_seg = 0;
+			r_mod = 0;
+			condition = 0;
+
+			src.r8 = 0;
+			src.r16 = 0;
+			src.r32 = 0;
+			src.rxmm = 0;
+			src.r_2 = 0;
+			src.mul = 0;
+			src.imm8 = 0;
+			src.imm16 = 0;
+			src.imm32 = 0;
+			src.disp8 = 0;
+			src.disp16 = 0;
+			src.disp32 = 0;
+			src.pref = 0;
+
+			dest.r8 = 0;
+			dest.r16 = 0;
+			dest.r32 = 0;
+			dest.rxmm = 0;
+			dest.r_2 = 0;
+			dest.mul = 0;
+			dest.imm8 = 0;
+			dest.imm16 = 0;
+			dest.imm32 = 0;
+			dest.disp8 = 0;
+			dest.disp16 = 0;
+			dest.disp32 = 0;
+			dest.pref = 0;
+		};
+
+		~inst() {};
+
+		char data[128]; // readable output/translation of the instruction
+		char opcode[16]; // just the instruction opcode
+
+		void set_op(const char* x){
+			strcpy_s(opcode, x);
+			strcat_s(data, x);
+			strcat_s(data, " ");
+		}
+
+		UINT address;
+
+		BYTE len; // overall length of the instruction in bytes (defaults to 1)
+		BYTE p_rep; // rep
+		BYTE p_lock; // lock
+		BYTE p_seg; // seg
+		BYTE r_mod; // register mode
+
+		UINT pref; // global instruction prefix (cs/ds/lock/repne/etc.)
+		UINT flags; // global instruction flags (which also determine src/dest values)
+
+		BYTE rel8; // 8 bit relative value (for jmp or call)
+		USHORT rel16; // 16 bit relative value
+		UINT rel32; // 32 bit relative value
+
+		BYTE condition; // if Fl_condition flag is set, so is this (if its a ja/jne/jnl, this will be set to the condition enum a/ne/nl)
+
+		operand src;
+		operand dest;
+	};
+
+
+	const BYTE mults[] = { 0, 2, 4, 8 };
+
+	enum reg_8 {
+		al,
+		cl,
+		dl,
+		bl,
+		ah,
+		ch,
+		dh,
+		bh
+	};
+
+	enum reg_16	{
+		ax,
+		bx,
+		cx,
+		dx,
+		sp,
+		bp,
+		si,
+		di
+	};
+
+	enum reg_32	{
+		eax,
+		ecx,
+		edx,
+		ebx,
+		esp,
+		ebp,
+		esi,
+		edi
+	};
+
+	enum reg_xmm {
+		xmm0,
+		xmm1,
+		xmm2,
+		xmm3,
+		xmm4,
+		xmm5,
+		xmm6,
+		xmm7
+	};
+
+	enum conds {
+		o,
+		no,
+		b,
+		nb,
+		e,
+		ne,
+		na,
+		a,
+		s,
+		ns,
+		p,
+		np,
+		l,
+		nl,
+		le,
+		g
+	};
+	
+	// for visuals / text translation
+	const char* c_reg_8[8] = {
+		"al",
+		"cl",
+		"dl",
+		"bl",
+		"ah",
+		"ch",
+		"dh",
+		"bh"
+	};
+
+	const char* c_reg_16[8] = {
+		"ax",
+		"bx",
+		"cx",
+		"dx",
+		"sp",
+		"bp",
+		"si",
+		"di"
+	};
+
+	const char* c_reg_32[8] = {
+		"eax",
+		"ecx",
+		"edx",
+		"ebx",
+		"esp",
+		"ebp",
+		"esi",
+		"edi"
+	};
+
+	const char*c_reg_xmm[8] = {
+		"xmm0",
+		"xmm1",
+		"xmm2",
+		"xmm3",
+		"xmm4",
+		"xmm5",
+		"xmm6",
+		"xmm7"
+	};
+
+	const char* c_conds[16] = {
+		"o",
+		"no",
+		"b",
+		"nb",
+		"e",
+		"ne",
+		"na",
+		"a",
+		"s",
+		"ns",
+		"p",
+		"np",
+		"l",
+		"nl",
+		"le",
+		"g"
+	};
+
+	
+	// Returns the equivalent x86 instruction at the given address
 	inst read(int address){
-		inst p = inst();
+		DWORD _BASE = 0;
 		BYTE c = 0;
 		BYTE l = 0;
 		BYTE* b = new BYTE[16];
+
+		__asm {
+			push eax
+			mov eax, fs: [0x30];
+			mov eax, [eax + 8];
+			pop eax
+		}
+
+		inst p = inst();
 		p.address = address;
+
 		memcpy_s(b, 16, reinterpret_cast<void*>(p.address), 16);
 
-		if (*b == seg_cs || *b == seg_ss || *b == seg_ds || *b == seg_es || *b == seg_fs || *b == seg_gs) {
+		switch (*b) {
+		case seg_cs: case seg_ss: case seg_ds: case seg_es: case seg_fs: case seg_gs:
 			p.p_seg = b[l++];
 			p.pref |= pre_seg;
-		} else if (*b == 0x66) {
+			break;
+		case 0x66:
 			p.pref |= pre_66;
 			l++;
-		} else if (*b == 0x67) {
+			break;
+		case 0x67:
 			p.pref |= pre_67;
 			l++;
-		} else if (*b == 0xF0) {
+			break;
+		case 0xF0:
 			p.p_lock = b[l++];
 			p.pref |= pre_lock;
 			strcat_s(p.data, "lock ");
-		} else if (*b == 0xF2) {
+			break;
+		case 0xF2:
 			p.p_lock = b[l++];
 			p.pref |= pre_repne;
 			strcat_s(p.data, "repne ");
-		} else if (*b == 0xF3) {
+			break;
+		case 0xF3:
 			p.p_lock = b[l++];
 			p.pref |= pre_repe;
 			strcat_s(p.data, "repe ");
+			break;
+		default: break;
 		}
 
 		if (b[l] == 0x0){
@@ -412,8 +656,13 @@ namespace eyestep {
 				p.r_mod = getmode40(b,++l);
 				p.dest.rxmm = getr1(b,l);
 			} else if (b[l] == 0xE6){
-				// let's break down what we're doing (if you happen
-				// to be reading this).
+				// people say my code isn't clean. that's kind of inevitable.
+				// it's a disassembler, I won't make this any easier for you.
+				// It's my code, and I didn't /ask/ for you to look at it
+				//
+				// but since you're soo insistent,
+				// let's break down what we're doing
+				// 
 				// The current instruction could be cvtdq2pd eax,xmm0.
 				// it's a cvtdq2pd instruction. simple.
 				// The bytes will be F3 0F E6 C0.
@@ -962,19 +1211,19 @@ namespace eyestep {
 		} if (p.flags & Fl_rel8){
 			p.rel8 = *(BYTE*)(b+l);
 			char m[64];
-			sprintf_s(m, "exe+%08X", ((address + l + 1) + p.rel8) - base);
+			sprintf_s(m, "exe+%08X", ((address + l + 1) + p.rel8) - _BASE);
 			l += 1;
 			strcat_s(p.data, m);
 		} else if (p.flags & Fl_rel16){
 			p.rel16 = *(USHORT*)(b+l);
 			char m[64];
-			sprintf_s(m, "exe+%08X", ((address + l + 2) + p.rel16) - base);
+			sprintf_s(m, "exe+%08X", ((address + l + 2) + p.rel16) - _BASE);
 			l += 2;
 			strcat_s(p.data, m);
 		} else if (p.flags & Fl_rel32){
 			p.rel32 = *(UINT*)(b+l);
 			char m[64];
-			sprintf_s(m, "exe+%08X", ((address + l + 4) + p.rel32) - base);
+			sprintf_s(m, "exe+%08X", ((address + l + 4) + p.rel32) - _BASE);
 			l += 4;
 			strcat_s(p.data, m);
 		} else if (p.flags & Fl_src_r8)
@@ -1308,3 +1557,5 @@ namespace eyestep {
 		return p;
 	}
 }
+
+#endif
