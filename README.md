@@ -2,8 +2,8 @@
 
 Q: What do I need to auto-update my conventions?
 A: Add disassembler.h and autoconventions.h in your project 
-and include 'autoconventions.h' in main.cpp or whereever
-you put your function typedefs.
+and include 'autoconventions.h' in main.cpp or where-ever
+you set the addresses of your Lua C functions
 
 Q: I included autoconventions.h, now what?
 A: Use the function called 'createRoutine' on any functions
