@@ -30,9 +30,10 @@ you would have to update your source regardless and the # of args.
 
 
 
-There is ONE exception to this method, that will I will
-eventually fix -- lua_pushnumber pushes a double-sized arg
+note that there is ONE exception to using this method, that I will
+soon fix -- lua_pushnumber pushes a double-sized arg
 which isn't supported by createRoutine at the moment.
+Everything else has been tested and guaranteed accuracy.
 
 
 So  ask Celery#8969 for updates
