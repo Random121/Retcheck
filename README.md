@@ -13,7 +13,7 @@ A: Use the function called 'createRoutine' on any functions
 you know of that have a chance of getting its calling convention
 changed.
 For example, lua_getfield, lua_setfield, lua_pushcclosure, . . .
-these are among the functions that ROBLOX commonly modifies.
+these are among the functions that ROBLOX commonly tampers with.
 
 
 Q: What args do I pass to createRoutine?
