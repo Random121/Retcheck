@@ -79,31 +79,37 @@
 #define cvt_to_short(a,b)		short	(b << 8 | a)
 #define cvt_to_int(a,b,c,d)		int		(a << 24 | b << 16 | c << 8 | d)
 
-namespace disassembler {
-	namespace convert {
+namespace disassembler 
+{
+	namespace convert 
+	{
 		const char c_ref1[16] = { '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F' };
 		const int  c_ref2[16] = {  0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15 };
 
 		// translation
-		BYTE to_hex(char* x) {
+		BYTE to_hex(char* x) 
+		{
 			if (lstrlenA(x) < 2) return 0;
 			if (x[0] == '?' && x[1] == '?') return 0;
 			BYTE b = 0;
-			for (int i = 0; i < 16; i++) {
+			for (int i = 0; i < 16; i++) 
+			{
 				if (x[0] == c_ref1[i]) b += c_ref2[i] * 16;
 				if (x[1] == c_ref1[i]) b += i;
 			}
 			return b;
 		}
 
-		std::string to_str(BYTE b) {
+		std::string to_str(BYTE b) 
+		{
 			std::string x = "";
 			x += c_ref1[b / 16];
 			x += c_ref1[b % 16];
 			return x;
 		}
 
-		std::string to_str(int address) {
+		std::string to_str(int address) 
+		{
 			std::string str = "";
 			char c[16];
 			sprintf_s(c, "%08X", address);
@@ -112,7 +118,8 @@ namespace disassembler {
 		}
 
 		// converts a string representation of an address to a UINT/hex address
-		int to_addr(char* addr) {
+		int to_addr(char* addr) 
+		{
 			if (lstrlenA(addr) < 8) return 0;
 
 			char c1[2], c2[2], c3[2], c4[2];
@@ -124,7 +131,8 @@ namespace disassembler {
 			return static_cast<int>(cvt_to_int(to_hex(c4), to_hex(c3), to_hex(c2), to_hex(c1)));
 		}
 
-		std::string to_bytes(int addr) {
+		std::string to_bytes(int addr) 
+		{
 			BYTE* x = new BYTE[4];
 			memcpy(x, &addr, 4);
 			char y[16];
@@ -134,13 +142,17 @@ namespace disassembler {
 			return res;
 		}
 
-		std::string to_bytes(const char* str) {
+		std::string to_bytes(const char* str) 
+		{
 			std::string x = "";
-			for (int i = 0; i < lstrlenA(str); i++) {
+			for (int i = 0; i < lstrlenA(str); i++) 
+			{
 				BYTE c = static_cast<BYTE>(str[i]);
 				if (i == lstrlenA(str) - 1)
+				{
 					x += to_str(c);
-				else {
+				} else 
+				{
 					x += to_str(c);
 					x += 0x20;
 				}
@@ -149,7 +161,8 @@ namespace disassembler {
 		}
 	}
 
-	class operand {
+	class operand 
+	{
 	public:
 		BYTE r8; // 8 bit register
 		BYTE r16; // 16 bit register
@@ -167,9 +180,11 @@ namespace disassembler {
 	};
 
 
-	class inst {
+	class inst 
+	{
 	public:
-		inst() {
+		inst() 
+		{
 			data[0] = '\0';
 			opcode[0] = '\0';
 
@@ -220,7 +235,8 @@ namespace disassembler {
 		char data[128]; // readable output/translation of the instruction
 		char opcode[16]; // just the instruction opcode
 
-		void set_op(const char* x){
+		void set_op(const char* x) 
+		{
 			strcpy_s(opcode, x);
 			strcat_s(data, x);
 			strcat_s(data, " ");
@@ -250,7 +266,8 @@ namespace disassembler {
 
 	const BYTE mults[] = { 0, 2, 4, 8 };
 
-	enum reg_8 {
+	enum reg_8 
+	{
 		al,
 		cl,
 		dl,
@@ -261,7 +278,8 @@ namespace disassembler {
 		bh
 	};
 
-	enum reg_16	{
+	enum reg_16
+	{
 		ax,
 		bx,
 		cx,
@@ -272,7 +290,8 @@ namespace disassembler {
 		di
 	};
 
-	enum reg_32	{
+	enum reg_32 
+	{
 		eax,
 		ecx,
 		edx,
@@ -283,7 +302,8 @@ namespace disassembler {
 		edi
 	};
 
-	enum reg_xmm {
+	enum reg_xmm 
+	{
 		xmm0,
 		xmm1,
 		xmm2,
@@ -294,7 +314,8 @@ namespace disassembler {
 		xmm7
 	};
 
-	enum conds {
+	enum conds 
+	{
 		o,
 		no,
 		b,
@@ -312,9 +333,10 @@ namespace disassembler {
 		le,
 		g
 	};
-	
+
 	// for visuals / text translation
-	const char* c_reg_8[8] = {
+	const char* c_reg_8[8] = 
+	{
 		"al",
 		"cl",
 		"dl",
@@ -325,7 +347,8 @@ namespace disassembler {
 		"bh"
 	};
 
-	const char* c_reg_16[8] = {
+	const char* c_reg_16[8] = 
+	{
 		"ax",
 		"bx",
 		"cx",
@@ -336,7 +359,8 @@ namespace disassembler {
 		"di"
 	};
 
-	const char* c_reg_32[8] = {
+	const char* c_reg_32[8] = 
+	{
 		"eax",
 		"ecx",
 		"edx",
@@ -347,7 +371,8 @@ namespace disassembler {
 		"edi"
 	};
 
-	const char*c_reg_xmm[8] = {
+	const char* c_reg_xmm[8] = 
+	{
 		"xmm0",
 		"xmm1",
 		"xmm2",
@@ -358,7 +383,8 @@ namespace disassembler {
 		"xmm7"
 	};
 
-	const char* c_conds[16] = {
+	const char* c_conds[16] = 
+	{
 		"o",
 		"no",
 		"b",
@@ -377,17 +403,19 @@ namespace disassembler {
 		"g"
 	};
 
-	
+
 	// Returns the equivalent x86 instruction at the given address
-	inst read(int address){
+	inst read(int address) 
+	{
 		DWORD _BASE = 0;
 		BYTE c = 0;
 		BYTE l = 0;
 		BYTE* b = new BYTE[16];
 
-		__asm {
+		__asm 
+		{
 			push eax
-			mov eax, fs: [0x30];
+			mov eax, fs: [0x30] ;
 			mov eax, [eax + 8];
 			pop eax
 		}
@@ -397,7 +425,8 @@ namespace disassembler {
 
 		memcpy_s(b, 16, reinterpret_cast<void*>(p.address), 16);
 
-		switch (*b) {
+		switch (*b) 
+		{
 		case seg_cs: case seg_ss: case seg_ds: case seg_es: case seg_fs: case seg_gs:
 			p.p_seg = b[l++];
 			p.pref |= pre_seg;
@@ -428,494 +457,820 @@ namespace disassembler {
 		default: break;
 		}
 
-		if (b[l] == 0x0){
+
+		switch (b[l])
+		{
+		case 0x00:
+		{
 			p.set_op("add");
 			p.flags |= Fl_src_dest | Fl_src_rm32 | Fl_dest_r8;
-			p.r_mod = getmode40(b,++l);
-			p.dest.r8 = getr1(b,l);
-		} else if (b[l] == 0x1){
+			p.r_mod = getmode40(b, ++l);
+			p.dest.r8 = getr1(b, l);
+			break;
+		}
+		case 0x01:
+		{
 			p.set_op("add");
 			p.flags |= Fl_src_dest | Fl_src_rm32 | Fl_dest_r32;
-			p.r_mod = getmode40(b,++l);
-			p.dest.r32 = getr1(b,l);
-		} else if (b[l] == 0x2){
+			p.r_mod = getmode40(b, ++l);
+			p.dest.r32 = getr1(b, l);
+			break;
+		}
+		case 0x02:
+		{
 			p.set_op("add");
 			p.flags |= Fl_src_dest | Fl_src_r8 | Fl_dest_rm32;
-			p.r_mod = getmode40(b,++l);
-			p.src.r8 = getr1(b,l);
-		} else if (b[l] == 0x3){
+			p.r_mod = getmode40(b, ++l);
+			p.src.r8 = getr1(b, l);
+			break;
+		}
+		case 0x03:
+		{
 			p.set_op("add");
 			p.flags |= Fl_src_dest | Fl_src_r32 | Fl_dest_rm32;
-			p.r_mod = getmode40(b,++l);
-			p.src.r32 = getr1(b,l);
-		} else if (b[l] == 0x4){
+			p.r_mod = getmode40(b, ++l);
+			p.src.r32 = getr1(b, l);
+			break;
+		}
+		case 0x04:
+		{
 			p.set_op("add");
 			p.flags |= Fl_src_dest | Fl_src_r8 | Fl_dest_disp8;
-			p.r_mod = getmode40(b,++l);
+			p.r_mod = getmode40(b, ++l);
 			p.src.r8 = 0;
-		} else if (b[l] == 0x5){
+			break;
+		}
+		case 0x05:
+		{
 			p.set_op("add");
 			p.flags |= Fl_src_only | Fl_src_disp32;
 			l++;
-		} else if (b[l] == 0x8){
+			break;
+		}
+		case 0x08:
+		{
 			p.set_op("or");
 			p.flags |= Fl_src_dest | Fl_src_rm32 | Fl_dest_r8;
-			p.r_mod = getmode40(b,++l);
-			p.dest.r8 = getr1(b,l);
-		} else if (b[l] == 0x9){
+			p.r_mod = getmode40(b, ++l);
+			p.dest.r8 = getr1(b, l);
+			break;
+		}
+		case 0x09:
+		{
 			p.set_op("or");
 			p.flags |= Fl_src_dest | Fl_src_rm32 | Fl_dest_r32;
-			p.r_mod = getmode40(b,++l);
-			p.dest.r32 = getr1(b,l);
-		} else if (b[l] == 0xA){
+			p.r_mod = getmode40(b, ++l);
+			p.dest.r32 = getr1(b, l);
+			break;
+		}
+		case 0x0A:
+		{
 			p.set_op("or");
 			p.flags |= Fl_src_dest | Fl_src_r8 | Fl_dest_rm32;
-			p.r_mod = getmode40(b,++l);
-			p.src.r8 = getr1(b,l);
-		} else if (b[l] == 0xB){
+			p.r_mod = getmode40(b, ++l);
+			p.src.r8 = getr1(b, l);
+			break;
+		}
+		case 0x0B:
+		{
 			p.set_op("or");
 			p.flags |= Fl_src_dest | Fl_src_r32 | Fl_dest_rm32;
-			p.r_mod = getmode40(b,++l);
-			p.src.r32 = getr1(b,l);
-		} else if (b[l] == 0xC){
+			p.r_mod = getmode40(b, ++l);
+			p.src.r32 = getr1(b, l);
+			break;
+		}
+		case 0x0C:
+		{
 			p.set_op("or");
 			p.flags |= Fl_src_dest | Fl_src_r8 | Fl_dest_disp8;
-			p.r_mod = getmode40(b,++l);
+			p.r_mod = getmode40(b, ++l);
 			p.src.r8 = 0;
-		} else if (b[l] == 0xD){
+			break;
+		}
+		case 0x0D:
+		{
 			p.set_op("or");
 			p.flags |= Fl_src_only | Fl_src_disp32;
 			l++;
-		} else if (b[l] == 0xF) {
-			l++;
-			if (b[l] == 0x10){
+			break;
+		}
+		case 0x0F:
+		{
+			switch (b[++l])
+			{
+			case 0x10:
+			{
 				// check for changes all through-out with PRE_F2 and PRE_F3 prefixes
-				if		(p.pref & pre_repne)	p.set_op("movsd");
+				if (p.pref & pre_repne)			p.set_op("movsd");
 				else if (p.pref & pre_repe)		p.set_op("movss");
 				else							p.set_op("movups");
+
 				p.dest.pref |= PRE_QWORD_PTR;
 				p.flags |= Fl_src_dest | Fl_src_rxmm | Fl_dest_rm32;
-				p.r_mod = getmode40(b,++l);
-				p.src.rxmm = getr1(b,l);
-			} else if (b[l] == 0x11){
-				if		(p.pref & pre_repne)	p.set_op("movsd");
+				p.r_mod = getmode40(b, ++l);
+				p.src.rxmm = getr1(b, l);
+				break;
+			}
+			case 0x11:
+			{
+				if (p.pref & pre_repne)			p.set_op("movsd");
 				else if (p.pref & pre_repe)		p.set_op("movss");
 				else							p.set_op("movups");
+
 				p.src.pref |= PRE_QWORD_PTR;
 				p.flags |= Fl_src_dest | Fl_src_rm32 | Fl_dest_rxmm;  // swapped
-				p.r_mod = getmode40(b,++l);
-				p.dest.rxmm = getr1(b,l);
-			} else if (b[l] == 0x12){
+				p.r_mod = getmode40(b, ++l);
+				p.dest.rxmm = getr1(b, l);
+				break;
+			}
+			case 0x12:
+			{
 				p.set_op("movhlps");
 				p.flags |= Fl_src_dest | Fl_src_rxmm | Fl_dest_rm32;
-				p.r_mod = getmode40(b,++l);
-				p.src.rxmm = getr1(b,l);
-			} else if (b[l] == 0x13){
+				p.r_mod = getmode40(b, ++l);
+				p.src.rxmm = getr1(b, l);
+				break;
+			}
+			case 0x13:
+			{
 				p.set_op("movlps");
 				p.flags |= Fl_src_dest | Fl_src_rm32 | Fl_dest_rxmm;
-				p.r_mod = getmode40(b,++l);
-				p.dest.rxmm = getr1(b,l);
-			} else if (b[l] == 0x14){
+				p.r_mod = getmode40(b, ++l);
+				p.dest.rxmm = getr1(b, l);
+				break;
+			}
+			case 0x14:
+			{
 				p.set_op("unpcklps");
 				p.flags |= Fl_src_dest | Fl_src_rxmm | Fl_dest_rm32;
-				p.r_mod = getmode40(b,++l);
-				p.src.rxmm = getr1(b,l);
-			} else if (b[l] == 0x15){
+				p.r_mod = getmode40(b, ++l);
+				p.src.rxmm = getr1(b, l);
+				break;
+			}
+			case 0x15:
+			{
 				p.set_op("unpckhps");
 				p.flags |= Fl_src_dest | Fl_src_rxmm | Fl_dest_rm32;
-				p.r_mod = getmode40(b,++l);
-				p.src.rxmm = getr1(b,l);
-			} else if (b[l] == 0x16){
+				p.r_mod = getmode40(b, ++l);
+				p.src.rxmm = getr1(b, l);
+				break;
+			}
+			case 0x16:
+			{
 				p.set_op("movhps");
 				p.flags |= Fl_src_dest | Fl_src_rxmm | Fl_dest_rm32;
-				p.r_mod = getmode40(b,++l);
-				p.src.rxmm = getr1(b,l);
-			} else if (b[l] == 0x17){
+				p.r_mod = getmode40(b, ++l);
+				p.src.rxmm = getr1(b, l);
+				break;
+			}
+			case 0x17:
+			{
 				p.set_op("movhps");
 				p.flags |= Fl_src_dest | Fl_src_rm32 | Fl_dest_rxmm; // swapped
-				p.r_mod = getmode40(b,++l);
-				p.dest.rxmm = getr1(b,l);
-			} else if (b[l] == 0x18){
+				p.r_mod = getmode40(b, ++l);
+				p.dest.rxmm = getr1(b, l);
+				break;
+			}
+			case 0x18:
+			{
 				// mode-based conditional prefetch instruction (can throw in later)
-			} else if (b[l] == 0x1F){ // test this more
+				break;
+			}
+			case 0x1F: // test this more
+			{
 				l++;
-				if (b[l] % 0x40 < 8){
+				if (b[l] % 0x40 < 8)
+				{
 					if (p.pref & pre_66)		p.src.pref |= PRE_WORD_PTR;
 					else						p.src.pref |= PRE_WORD_PTR;
 					p.set_op("nop");
 					p.flags |= Fl_src_only | Fl_src_rm32;
-					p.r_mod = getmode40(b,l);
-					p.src.r32 = getr1(b,l);
+					p.r_mod = getmode40(b, l);
+					p.src.r32 = getr1(b, l);
 				}
-			} else if (b[l] == 0x28){
+				break;
+			}
+			case 0x28:
+			{
 				p.set_op("movaps");
 				p.flags |= Fl_src_dest | Fl_src_rxmm | Fl_dest_rm32;
-				p.r_mod = getmode40(b,++l);
-				p.src.rxmm = getr1(b,l);
-			}  else if (b[l] == 0x29){
+				p.r_mod = getmode40(b, ++l);
+				p.src.rxmm = getr1(b, l);
+				break;
+			}
+			case 0x29:
+			{
 				p.set_op("movaps");
 				p.flags |= Fl_src_dest | Fl_src_rm32 | Fl_dest_rxmm; // swapped
-				p.r_mod = getmode40(b,++l);
-				p.dest.rxmm = getr1(b,l);
-			} else if (b[l] == 0x2C){
+				p.r_mod = getmode40(b, ++l);
+				p.dest.rxmm = getr1(b, l);
+				break;
+			}
+			case 0x2C:
+			{
 				p.dest.pref |= PRE_QWORD_PTR;
 				p.set_op("cvttsd2si");
 				p.flags |= Fl_src_dest | Fl_src_r32 | Fl_dest_rm32;
-				p.r_mod = getmode40(b,++l);
-				p.src.r32 = getr1(b,l); // note to self...update all r32 src's for these
-			} else if (b[l] == 0x2E){
+				p.r_mod = getmode40(b, ++l);
+				p.src.r32 = getr1(b, l); // note to self...update all r32 src's for these
+				break;
+			}
+			case 0x2E:
+			{
 				p.dest.pref |= PRE_QWORD_PTR;
 				p.set_op("ucomisd");
 				p.flags |= Fl_src_dest | Fl_src_rxmm | Fl_dest_rm32;
-				p.r_mod = getmode40(b,++l);
-				p.src.rxmm = getr1(b,l);
-			} else if (b[l] == 0x2F){
+				p.r_mod = getmode40(b, ++l);
+				p.src.rxmm = getr1(b, l);
+				break;
+			}
+			case 0x2F:
+			{
 				//p.dest.pref |= PRE_QWORD_PTR;
 				p.set_op("comiss");
 				p.flags |= Fl_src_dest | Fl_src_rxmm | Fl_dest_rm32;
-				p.r_mod = getmode40(b,++l);
-				p.src.rxmm = getr1(b,l);
-			} else if ((c=(b[l] & 0x40)) && b[l]<c+16) {
-				p.condition = (b[l]-c);
+				p.r_mod = getmode40(b, ++l);
+				p.src.rxmm = getr1(b, l);
+				break;
+			}
+			case 0x40:
+			case 0x41:
+			case 0x42:
+			case 0x43:
+			case 0x44:
+			case 0x45:
+			case 0x46:
+			case 0x47:
+			case 0x48:
+			case 0x49:
+			case 0x4A:
+			case 0x4B:
+			case 0x4C:
+			case 0x4D:
+			case 0x4E:
+			case 0x4F:
+			{
+				c = (b[l] & 0x40);
+				p.condition = (b[l] - c);
 				char opc[8];
 				sprintf_s(opc, "cmov");
 				strcat_s(opc, c_conds[p.condition]);
 				p.set_op(opc);
 				p.flags |= Fl_src_dest | Fl_src_r32 | Fl_dest_rm32;
-				p.r_mod = getmode40(b,++l);
-				p.src.r32 = getr1(b,l);
-			} else if ((c=(b[l] & 0x50)) && b[l]<c+16) {
+				p.r_mod = getmode40(b, ++l);
+				p.src.r32 = getr1(b, l);
+				break;
+			}
+			case 0x50:
+			case 0x51:
+			case 0x52:
+			case 0x53:
+			case 0x54:
+			case 0x55:
+			case 0x56:
+			case 0x57:
+			case 0x58:
+			case 0x59:
+			case 0x5A:
+			case 0x5B:
+			case 0x5C:
+			case 0x5D:
+			case 0x5E:
+			case 0x5F:
+			{
+				c = (b[l] & 0x50);
 				const char* select_opcodes[] = { "movmskps", "sqrtps", "rsqrtps", "rcpps", "andps", "andnps", "orps", "xorps", "addps", "mulps", "cvtps2pd", "cvtdq2ps", "subps", "minps", "divps", "maxps" };
 				p.dest.pref |= PRE_QWORD_PTR;
-				p.set_op(select_opcodes[b[l]-c]);
+				p.set_op(select_opcodes[b[l] - c]);
 				p.flags |= Fl_src_dest | Fl_src_rxmm | Fl_dest_rm32;
-				p.r_mod = getmode40(b,++l);
-				p.src.rxmm = getr1(b,l);
-			} else if (b[l] == 0x6E){
+				p.r_mod = getmode40(b, ++l);
+				p.src.rxmm = getr1(b, l);
+				break;
+			}
+			case 0x6E:
+			{
 				p.dest.pref |= PRE_DWORD_PTR;
 				p.set_op("movd");
 				p.flags |= Fl_src_dest | Fl_src_rxmm | Fl_dest_rm32;
-				p.r_mod = getmode40(b,++l);
-				p.src.rxmm = getr1(b,l);
-			} else if (b[l] == 0x7E){
+				p.r_mod = getmode40(b, ++l);
+				p.src.rxmm = getr1(b, l);
+				break;
+			}
+			case 0x7E:
+			{
 				p.dest.pref |= PRE_QWORD_PTR;
 				p.set_op("movq");
 				p.flags |= Fl_src_dest | Fl_src_rxmm | Fl_dest_rm32;
-				p.r_mod = getmode40(b,++l);
-				p.src.rxmm = getr1(b,l);
-			} else if (b[l] == 0x7F){
+				p.r_mod = getmode40(b, ++l);
+				p.src.rxmm = getr1(b, l);
+				break;
+			}
+			case 0x7F:
+			{
 				p.src.pref |= PRE_QWORD_PTR;
 				p.set_op("movdqu");
 				p.flags |= Fl_src_dest | Fl_src_rm32 | Fl_dest_rxmm;
-				p.r_mod = getmode40(b,++l);
-				p.dest.rxmm = getr1(b,l);
-			} else if ((c=(b[l] & 0x80)) && b[l]<c+16) {
-				p.condition = (b[l]-c);
+				p.r_mod = getmode40(b, ++l);
+				p.dest.rxmm = getr1(b, l);
+				break;
+			}
+			case 0x80:
+			case 0x81:
+			case 0x82:
+			case 0x83:
+			case 0x84:
+			case 0x85:
+			case 0x86:
+			case 0x87:
+			case 0x88:
+			case 0x89:
+			case 0x8A:
+			case 0x8B:
+			case 0x8C:
+			case 0x8D:
+			case 0x8E:
+			case 0x8F:
+			{
+				c = (b[l] & 0x80);
+				p.condition = (b[l] - c);
 				char opc[8];
 				sprintf_s(opc, "j");
 				strcat_s(opc, c_conds[p.condition]);
 				p.set_op(opc);
 				p.flags |= Fl_src_only | Fl_rel32;
 				l++;
-			} else if ((c=(b[l] & 0x90)) && b[l]<c+16) {
+				break;
+			}
+			case 0x90:
+			case 0x91:
+			case 0x92:
+			case 0x93:
+			case 0x94:
+			case 0x95:
+			case 0x96:
+			case 0x97:
+			case 0x98:
+			case 0x99:
+			case 0x9A:
+			case 0x9B:
+			case 0x9C:
+			case 0x9D:
+			case 0x9E:
+			case 0x9F:
+			{
+				c = (b[l] & 0x90);
 				char opc[8];
 				sprintf_s(opc, "set");
 				strcat_s(opc, c_conds[p.condition]);
 				p.set_op(opc);
 				p.flags |= Fl_src_only | Fl_src_rm32;
-				p.r_mod = getmode40(b,++l);
-				p.src.r32 = getr1(b,l);
-			} else if (b[l] == 0xB6) {
+				p.r_mod = getmode40(b, ++l);
+				p.src.r32 = getr1(b, l);
+				break;
+			}
+			case 0xB6:
+			{
 				p.dest.pref |= PRE_BYTE_PTR;
 				p.set_op("movzx");
 				p.flags |= Fl_src_dest | Fl_src_r32 | Fl_dest_rm32;
 				p.r_mod = getmode40(b, ++l);
 				p.src.r32 = getr1(b, l);
-			} else if (b[l] == 0xB7) {
+				break;
+			}
+			case 0xB7:
+			{
 				p.dest.pref |= PRE_WORD_PTR;
 				p.set_op("movzx");
 				p.flags |= Fl_src_dest | Fl_src_r32 | Fl_dest_rm32;
 				p.r_mod = getmode40(b, ++l);
 				p.src.r32 = getr1(b, l);
-			} else if (b[l] == 0xBE) {
+				break;
+			}
+			case 0xBE:
+			{
 				p.dest.pref |= PRE_BYTE_PTR;
 				p.set_op("movsx");
 				p.flags |= Fl_src_dest | Fl_src_r32 | Fl_dest_rm32;
 				p.r_mod = getmode40(b, ++l);
 				p.src.r32 = getr1(b, l);
-			} else if (b[l] == 0xBF) {
+				break;
+			}
+			case 0xBF:
+			{
 				p.dest.pref |= PRE_WORD_PTR;
 				p.set_op("movsx");
 				p.flags |= Fl_src_dest | Fl_src_r32 | Fl_dest_rm32;
 				p.r_mod = getmode40(b, ++l);
 				p.src.r32 = getr1(b, l);
-			} else if (b[l] == 0xD6){
+				break;
+			}
+			case 0xD6:
+			{
 				p.src.pref |= PRE_QWORD_PTR;
 				p.set_op("movq");
 				p.flags |= Fl_src_dest | Fl_src_rm32 | Fl_dest_rxmm;
-				p.r_mod = getmode40(b,++l);
-				p.dest.rxmm = getr1(b,l);
-			} else if (b[l] == 0xE6){
-				// people say my code isn't clean. that's kind of inevitable.
-				// it's a disassembler, I won't make this any easier for you.
-				// It's my code, and I didn't /ask/ for you to look at it
-				//
-				// but since you're soo insistent,
-				// let's break down what we're doing
-				// 
-				// The current instruction could be cvtdq2pd eax,xmm0.
-				// it's a cvtdq2pd instruction. simple.
-				// The bytes will be F3 0F E6 C0.
-				// `F3` determines what form of cvtdq2pd to use; (32-bit/16-bit)
-				// we'll skip this for now. (I dont even include too many
-				// 16-bit instructions; just the most common ones)
-				// `0F` implies it's one of these instructions in this set. ignore
-				// `E6` implies it's the cvtdq2pd instruction.
-				// `C0` implies everything else; it's the `mod` byte.
-				// It determines both the src and dest operand, however,
-				// if it were below C0 it `might` have an extending 
-				// byte that determines more about the src or dest operand.
-				// There is alot that goes into this; just know it's
-				// the `mod` byte.
+				p.r_mod = getmode40(b, ++l);
+				p.dest.rxmm = getr1(b, l);
+				break;
+			}
+			case 0xE6:
+			{
 				p.dest.pref |= PRE_QWORD_PTR;
-				// ^ Prefix flag for a src or dest operand;
-				// This implies that, if the `mod` byte is over
-				// 0xC0, rather than being		cvtdq2pd xmm0,eax
-				// it will instead turn into	cvtdq2pd xmm0,xmm0
-				// Many instructions have to have this recognized
-				// It also implies that offsets should have a mark;
-				// cvtdq2pd xmm0, [eax+04]		will instead show:
-				// cvtdq2pd xmm0, QWORD PTR [eax+04].
-				// So, this flag is important, but easy to recognize.
 				p.set_op("cvtdq2pd");
 				p.flags |= Fl_src_dest | Fl_src_rxmm | Fl_dest_rm32;
-				// Normal flags; our instruction contains a src and dest
-				// so we include Fl_src_dest.
-				// First half of the opcode(src) is supposed to be a
-				// a floating point register; xmm0-xmm7. Always.
-				// so we use Fl_src_rxmm.
-				// The second half of the opcode(dest) has to be a
-				// 32-bit register(eax,ecx,edx, . . .), but it can also
-				// contain a long offset; [eax+4*4], [ebx+ebx], etc.
-				// so we would do Fl_dest_rm32 rather than Fl_dest_r32.
-				p.r_mod = getmode40(b,++l);
-				// move onto the next byte to interpret, while storing
-				// the `mod` identifier byte into r_mod, for help in
-				// calculating the rest of the instruction.
-				// this is important, since we have to move onto the
-				// next byte and allow the system below to finish up
-				// computing the instruction.
-				p.src.rxmm = getr1(b,l);
-				// ^ I can't remember the exact reason for this line,
-				// except that it'll guarantee src.rxmm has the correct value.
-				// We typically set src.rxmm (or whatever we used for src),
-				// IF the `dest` flag is an rm32.
-				// And we would set dest.rxmm if the `src` flag is an rm32.
-				// This is because the rm32 mode can cause the bytes
-				// to be kind of shifted around for src operand
+				p.r_mod = getmode40(b, ++l);
+				p.src.rxmm = getr1(b, l);
+				break;
 			}
-		} else if (b[l] == 0x10){
+			}
+		}
+		case 0x10:
+		{
 			p.set_op("adc");
 			p.flags |= Fl_src_dest | Fl_src_rm32 | Fl_dest_r8;
-			p.r_mod = getmode40(b,++l);
-			p.dest.r8 = getr1(b,l);
-		} else if (b[l] == 0x11){
+			p.r_mod = getmode40(b, ++l);
+			p.dest.r8 = getr1(b, l);
+			break;
+		}
+		case 0x11:
+		{
 			p.set_op("adc");
 			p.flags |= Fl_src_dest | Fl_src_rm32 | Fl_dest_r32;
-			p.r_mod = getmode40(b,++l);
-			p.dest.r32 = getr1(b,l);
-		} else if (b[l] == 0x12){
+			p.r_mod = getmode40(b, ++l);
+			p.dest.r32 = getr1(b, l);
+			break;
+		}
+		case 0x12:
+		{
 			p.set_op("adc");
 			p.flags |= Fl_src_dest | Fl_src_r8 | Fl_dest_rm32;
-			p.r_mod = getmode40(b,++l);
-			p.src.r8 = getr1(b,l);
-		} else if (b[l] == 0x13){
+			p.r_mod = getmode40(b, ++l);
+			p.src.r8 = getr1(b, l);
+			break;
+		}
+		case 0x13:
+		{
 			p.set_op("adc");
 			p.flags |= Fl_src_dest | Fl_src_r32 | Fl_dest_rm32;
-			p.r_mod = getmode40(b,++l);
-			p.src.r32 = getr1(b,l);
-		} else if (b[l] == 0x14){
+			p.r_mod = getmode40(b, ++l);
+			p.src.r32 = getr1(b, l);
+			break;
+		}
+		case 0x14:
+		{
 			p.set_op("adc");
 			p.flags |= Fl_src_dest | Fl_src_r8 | Fl_dest_disp8;
-			p.r_mod = getmode40(b,++l);
+			p.r_mod = getmode40(b, ++l);
 			p.src.r8 = 0;
-		} else if (b[l] == 0x15){
+			break;
+		}
+		case 0x15:
+		{
 			p.set_op("adc");
 			p.flags |= Fl_src_only | Fl_src_disp32;
 			l++;
-		} else if (b[l] == 0x18){
+			break;
+		}
+		case 0x18:
+		{
 			p.set_op("sbb");
 			p.flags |= Fl_src_dest | Fl_src_rm32 | Fl_dest_r8;
-			p.r_mod = getmode40(b,++l);
-			p.dest.r8 = getr1(b,l);
-		} else if (b[l] == 0x19){
+			p.r_mod = getmode40(b, ++l);
+			p.dest.r8 = getr1(b, l);
+			break;
+		}
+		case 0x19:
+		{
 			p.set_op("sbb");
 			p.flags |= Fl_src_dest | Fl_src_rm32 | Fl_dest_r32;
-			p.r_mod = getmode40(b,++l);
-			p.dest.r32 = getr1(b,l);
-		} else if (b[l] == 0x1A){
+			p.r_mod = getmode40(b, ++l);
+			p.dest.r32 = getr1(b, l);
+			break;
+		}
+		case 0x1A:
+		{
 			p.set_op("sbb");
 			p.flags |= Fl_src_dest | Fl_src_r8 | Fl_dest_rm32;
-			p.r_mod = getmode40(b,++l);
-			p.src.r8 = getr1(b,l);
-		} else if (b[l] == 0x1B){
+			p.r_mod = getmode40(b, ++l);
+			p.src.r8 = getr1(b, l);
+			break;
+		}
+		case 0x1B:
+		{
 			p.set_op("sbb");
 			p.flags |= Fl_src_dest | Fl_src_r32 | Fl_dest_rm32;
-			p.r_mod = getmode40(b,++l);
-			p.src.r32 = getr1(b,l);
-		} else if (b[l] == 0x1C){
+			p.r_mod = getmode40(b, ++l);
+			p.src.r32 = getr1(b, l);
+			break;
+		}
+		case 0x1C:
+		{
 			p.set_op("sbb");
 			p.flags |= Fl_src_dest | Fl_src_r8 | Fl_dest_disp8;
-			p.r_mod = getmode40(b,++l);
+			p.r_mod = getmode40(b, ++l);
 			p.src.r8 = 0;
-		} else if (b[l] == 0x1D){
+			break;
+		}
+		case 0x1D:
+		{
 			p.set_op("sbb");
 			p.flags |= Fl_src_only | Fl_src_disp32;
 			l++;
-		} else if (b[l] == 0x20){
+			break;
+		}
+		case 0x20:
+		{
 			p.set_op("and");
 			p.flags |= Fl_src_dest | Fl_src_rm32 | Fl_dest_r8;
-			p.r_mod = getmode40(b,++l);
-			p.dest.r8 = getr1(b,l);
-		} else if (b[l] == 0x21){
+			p.r_mod = getmode40(b, ++l);
+			p.dest.r8 = getr1(b, l);
+			break;
+		}
+		case 0x21:
+		{
 			p.set_op("and");
 			p.flags |= Fl_src_dest | Fl_src_rm32 | Fl_dest_r32;
-			p.r_mod = getmode40(b,++l);
-			p.dest.r32 = getr1(b,l);
-		} else if (b[l] == 0x22){
+			p.r_mod = getmode40(b, ++l);
+			p.dest.r32 = getr1(b, l);
+			break;
+		}
+		case 0x22:
+		{
 			p.set_op("and");
 			p.flags |= Fl_src_dest | Fl_src_r8 | Fl_dest_rm32;
-			p.r_mod = getmode40(b,++l);
-			p.src.r8 = getr1(b,l);
-		} else if (b[l] == 0x23){
+			p.r_mod = getmode40(b, ++l);
+			p.src.r8 = getr1(b, l);
+			break;
+		}
+		case 0x23:
+		{
 			p.set_op("and");
 			p.flags |= Fl_src_dest | Fl_src_r32 | Fl_dest_rm32;
-			p.r_mod = getmode40(b,++l);
-			p.src.r32 = getr1(b,l);
-		} else if (b[l] == 0x24){
+			p.r_mod = getmode40(b, ++l);
+			p.src.r32 = getr1(b, l);
+			break;
+		}
+		case 0x24:
+		{
 			p.set_op("and");
 			p.flags |= Fl_src_dest | Fl_src_r8 | Fl_dest_disp8;
-			p.r_mod = getmode40(b,++l);
+			p.r_mod = getmode40(b, ++l);
 			p.src.r8 = 0;
-		} else if (b[l] == 0x25){
+			break;
+		}
+		case 0x25:
+		{
 			p.set_op("and");
 			p.flags |= Fl_src_only | Fl_src_disp32;
 			l++;
-		} else if (b[l] == 0x28){
+			break;
+		}
+		case 0x28:
+		{
 			p.set_op("sub");
 			p.flags |= Fl_src_dest | Fl_src_rm32 | Fl_dest_r8;
-			p.r_mod = getmode40(b,++l);
-			p.dest.r8 = getr1(b,l);
-		} else if (b[l] == 0x29){
+			p.r_mod = getmode40(b, ++l);
+			p.dest.r8 = getr1(b, l);
+			break;
+		}
+		case 0x29:
+		{
 			p.set_op("sub");
 			p.flags |= Fl_src_dest | Fl_src_rm32 | Fl_dest_r32;
-			p.r_mod = getmode40(b,++l);
-			p.dest.r32 = getr1(b,l);
-		} else if (b[l] == 0x2A){
+			p.r_mod = getmode40(b, ++l);
+			p.dest.r32 = getr1(b, l);
+			break;
+		}
+		case 0x2A:
+		{
 			p.set_op("sub");
 			p.flags |= Fl_src_dest | Fl_src_r8 | Fl_dest_rm32;
-			p.r_mod = getmode40(b,++l);
-			p.src.r8 = getr1(b,l);
-		} else if (b[l] == 0x2B){
+			p.r_mod = getmode40(b, ++l);
+			p.src.r8 = getr1(b, l);
+			break;
+		}
+		case 0x2B:
+		{
 			p.set_op("sub");
 			p.flags |= Fl_src_dest | Fl_src_r32 | Fl_dest_rm32;
-			p.r_mod = getmode40(b,++l);
-			p.src.r32 = getr1(b,l);
-		} else if (b[l] == 0x2C){
+			p.r_mod = getmode40(b, ++l);
+			p.src.r32 = getr1(b, l);
+			break;
+		}
+		case 0x2C:
+		{
 			p.set_op("sub");
 			p.flags |= Fl_src_dest | Fl_src_r8 | Fl_dest_disp8;
-			p.r_mod = getmode40(b,++l);
+			p.r_mod = getmode40(b, ++l);
 			p.src.r8 = 0;
-		} else if (b[l] == 0x2D){
+			break;
+		}
+		case 0x2D:
+		{
 			p.set_op("sub");
 			p.flags |= Fl_src_only | Fl_src_disp32;
 			l++;
-		} else if (b[l] == 0x30){
+			break;
+		}
+		case 0x30:
+		{
 			p.set_op("xor");
 			p.flags |= Fl_src_dest | Fl_src_rm32 | Fl_dest_r8;
-			p.r_mod = getmode40(b,++l);
-			p.dest.r8 = getr1(b,l);
-		} else if (b[l] == 0x31){
+			p.r_mod = getmode40(b, ++l);
+			p.dest.r8 = getr1(b, l);
+			break;
+		}
+		case 0x31:
+		{
 			p.set_op("xor");
 			p.flags |= Fl_src_dest | Fl_src_rm32 | Fl_dest_r32;
-			p.r_mod = getmode40(b,++l);
-			p.dest.r32 = getr1(b,l);
-		} else if (b[l] == 0x32){
+			p.r_mod = getmode40(b, ++l);
+			p.dest.r32 = getr1(b, l);
+			break;
+		}
+		case 0x32:
+		{
 			p.set_op("xor");
 			p.flags |= Fl_src_dest | Fl_src_r8 | Fl_dest_rm32;
-			p.r_mod = getmode40(b,++l);
-			p.src.r8 = getr1(b,l);
-		} else if (b[l] == 0x33){
+			p.r_mod = getmode40(b, ++l);
+			p.src.r8 = getr1(b, l);
+			break;
+		}
+		case 0x33:
+		{
 			p.set_op("xor");
 			p.flags |= Fl_src_dest | Fl_src_r32 | Fl_dest_rm32;
-			p.r_mod = getmode40(b,++l);
-			p.src.r32 = getr1(b,l);
-		} else if (b[l] == 0x34){
+			p.r_mod = getmode40(b, ++l);
+			p.src.r32 = getr1(b, l);
+			break;
+		}
+		case 0x34:
+		{
 			p.set_op("xor");
 			p.flags |= Fl_src_dest | Fl_src_r8 | Fl_dest_disp8;
-			p.r_mod = getmode40(b,++l);
+			p.r_mod = getmode40(b, ++l);
 			p.src.r8 = 0;
-		} else if (b[l] == 0x35){
+			break;
+		}
+		case 0x35:
+		{
 			p.set_op("xor");
 			p.flags |= Fl_src_only | Fl_src_disp32;
 			l++;
-		} else if (b[l] == 0x38){
+			break;
+		}
+		case 0x38:
+		{
 			p.set_op("cmp");
 			p.flags |= Fl_src_dest | Fl_src_rm32 | Fl_dest_r8;
-			p.r_mod = getmode40(b,++l);
-			p.dest.r8 = getr1(b,l);
-		} else if (b[l] == 0x39){
+			p.r_mod = getmode40(b, ++l);
+			p.dest.r8 = getr1(b, l);
+			break;
+		}
+		case 0x39:
+		{
 			p.set_op("cmp");
 			p.flags |= Fl_src_dest | Fl_src_rm32 | Fl_dest_r32;
-			p.r_mod = getmode40(b,++l);
-			p.dest.r32 = getr1(b,l);
-		} else if (b[l] == 0x3A){
+			p.r_mod = getmode40(b, ++l);
+			p.dest.r32 = getr1(b, l);
+			break;
+		}
+		case 0x3A:
+		{
 			p.set_op("cmp");
 			p.flags |= Fl_src_dest | Fl_src_r8 | Fl_dest_rm32;
-			p.r_mod = getmode40(b,++l);
-			p.src.r8 = getr1(b,l);
-		} else if (b[l] == 0x3B){
+			p.r_mod = getmode40(b, ++l);
+			p.src.r8 = getr1(b, l);
+			break;
+		}
+		case 0x3B:
+		{
 			p.set_op("cmp");
 			p.flags |= Fl_src_dest | Fl_src_r32 | Fl_dest_rm32;
-			p.r_mod = getmode40(b,++l);
-			p.src.r32 = getr1(b,l);
-		} else if (b[l] == 0x3C){
+			p.r_mod = getmode40(b, ++l);
+			p.src.r32 = getr1(b, l);
+			break;
+		}
+		case 0x3C:
+		{
 			p.set_op("cmp");
 			p.flags |= Fl_src_dest | Fl_src_r8 | Fl_dest_disp8;
-			p.r_mod = getmode40(b,++l);
+			p.r_mod = getmode40(b, ++l);
 			p.src.r8 = 0;
-		} else if (b[l] == 0x3D){
+			break;
+		}
+		case 0x3D:
+		{
 			p.set_op("cmp");
 			p.flags |= Fl_src_only | Fl_src_disp32;
 			l++;
-		} else if ((c=(b[l] & 0x40)) && b[l]<c+0x8){
+			break;
+		}
+		case 0x40:
+		case 0x41:
+		case 0x42:
+		case 0x43:
+		case 0x44:
+		case 0x45:
+		case 0x46:
+		case 0x47:
+		{
+			c = (b[l] & 0x40);
 			p.set_op("inc");
 			p.src.r32 = b[l++] - c;
 			p.flags |= Fl_src_only | Fl_src_r32;
-		} else if ((c=(b[l] & 0x48)) && b[l]<c+0x8){
+			break;
+		}
+		case 0x48:
+		case 0x49:
+		case 0x4A:
+		case 0x4B:
+		case 0x4C:
+		case 0x4D:
+		case 0x4E:
+		case 0x4F:
+		{
+			c = (b[l] & 0x48);
 			p.set_op("dec");
 			p.src.r32 = b[l++] - c;
 			p.flags |= Fl_src_only | Fl_src_r32;
-		} else if ((c=(b[l] & 0x50)) && b[l]<c+0x8){
+			break;
+		}
+		case 0x50:
+		case 0x51:
+		case 0x52:
+		case 0x53:
+		case 0x54:
+		case 0x55:
+		case 0x56:
+		case 0x57:
+		{
+			c = (b[l] & 0x50);
 			p.set_op("push");
 			p.src.r32 = b[l++] - c;
 			p.flags |= Fl_src_only | Fl_src_r32;
-		} else if ((c=(b[l] & 0x58)) && b[l]<c+0x8){
+			break;
+		}
+		case 0x58:
+		case 0x59:
+		case 0x5A:
+		case 0x5B:
+		case 0x5C:
+		case 0x5D:
+		case 0x5E:
+		case 0x5F:
+		{
+			c = (b[l] & 0x58);
 			p.set_op("pop");
 			p.src.r32 = b[l++] - c;
 			p.flags |= Fl_src_only | Fl_src_r32;
-		} else if (b[l] == 0x60)
-			l++, p.set_op("pushad");
-		else if (b[l] == 0x61)
-			l++, p.set_op("popad");
-		else if (b[l] == 0x68){
-			l++, p.set_op("push");
+			break;
+		}
+		case 0x60:
+		{
+			l++;
+			p.set_op("pushad");
+			break;
+		}
+		case 0x61:
+		{
+			l++;
+			p.set_op("popad");
+			break;
+		}
+		case 0x68:
+		{
+			l++;
+			p.set_op("push");
 			p.flags |= Fl_src_only | Fl_src_disp32;
-		} else if (b[l] == 0x6A){
-			l++, p.set_op("push");
+			break;
+		}
+		case 0x6A:
+		{
+			l++;
+			p.set_op("push");
 			p.flags |= Fl_src_only | Fl_src_disp8;
-		} else if ((c=(b[l] & 0x70)) && b[l]<c+16) {
-			p.condition = (b[l]-c);
+			break;
+		}
+		case 0x70:
+		case 0x71:
+		case 0x72:
+		case 0x73:
+		case 0x74:
+		case 0x75:
+		case 0x76:
+		case 0x77:
+		case 0x78:
+		case 0x79:
+		case 0x7A:
+		case 0x7B:
+		case 0x7C:
+		case 0x7D:
+		case 0x7E:
+		case 0x7F:
+		{
+			c = (b[l] & 0x70);
+			p.condition = (b[l] - c);
 			if (p.condition >= 16) throw std::exception("Bad jmp condition index");
 			char opc[16];
 			sprintf_s(opc, "j");
@@ -923,310 +1278,586 @@ namespace disassembler {
 			p.set_op(opc);
 			p.flags |= Fl_src_only | Fl_rel8;
 			l++;
-		} else if (b[l] == 0x80 || b[l] == 0x82){
+			break;
+		}
+		case 0x80: case 0x82: 
+		{
 			p.src.pref |= PRE_BYTE_PTR; // unique identifier; dest is imm8 and not r8
 			// we have it automatically use r8 if dest is r8 and its in 3rd mode but not in this case
-			int mode = getr1(b,++l);
-			if (mode == 0)		p.set_op("add");
-			else if (mode == 1) p.set_op("or");
-			else if (mode == 2) p.set_op("adc");
-			else if (mode == 3) p.set_op("sbb");
-			else if (mode == 4) p.set_op("and");
-			else if (mode == 5) p.set_op("sub");
-			else if (mode == 6) p.set_op("xor");
-			else if (mode == 7) p.set_op("cmp");
+			int mode = getr1(b, ++l);
+			switch (mode)
+			{
+			case 0:
+				p.set_op("add");
+				break;
+			case 1:
+				p.set_op("or");
+				break;
+			case 2:
+				p.set_op("adc");
+				break;
+			case 3:
+				p.set_op("sbb");
+				break;
+			case 4:
+				p.set_op("and");
+				break;
+			case 5:
+				p.set_op("sub");
+				break;
+			case 6:
+				p.set_op("xor");
+				break;
+			case 7:
+				p.set_op("cmp");
+				break;
+			}
 
 			p.flags |= Fl_src_dest | Fl_src_rm32 | Fl_dest_disp8;
-			p.r_mod = getmode40(b,l);
-			p.dest.r32 = getr1(b,l);
-		} else if (b[l] == 0x81){
-			int mode = getr1(b,++l);
-			if (mode == 0)		p.set_op("add");
-			else if (mode == 1) p.set_op("or");
-			else if (mode == 2) p.set_op("adc");
-			else if (mode == 3) p.set_op("sbb");
-			else if (mode == 4) p.set_op("and");
-			else if (mode == 5) p.set_op("sub");
-			else if (mode == 6) p.set_op("xor");
-			else if (mode == 7) p.set_op("cmp");
+			p.r_mod = getmode40(b, l);
+			p.dest.r32 = getr1(b, l);
+			break;
+		}
+		case 0x81:
+		{
+			int mode = getr1(b, ++l); 
+			switch (mode)
+			{
+			case 0:
+				p.set_op("add");
+				break;
+			case 1:
+				p.set_op("or");
+				break;
+			case 2:
+				p.set_op("adc");
+				break;
+			case 3:
+				p.set_op("sbb");
+				break;
+			case 4:
+				p.set_op("and");
+				break;
+			case 5:
+				p.set_op("sub");
+				break;
+			case 6:
+				p.set_op("xor");
+				break;
+			case 7:
+				p.set_op("cmp");
+				break;
+			}
 
 			p.flags |= Fl_src_dest | Fl_src_rm32 | Fl_dest_disp32;
-			p.r_mod = getmode40(b,l);
-			p.dest.r32 = getr1(b,l);
-		} else if (b[l] == 0x83){
+			p.r_mod = getmode40(b, l);
+			p.dest.r32 = getr1(b, l);
+			break;
+		}
+		case 0x83: 
+		{
 			p.src.pref |= PRE_DWORD_PTR;
-			int mode = getr1(b,++l);
-			if (mode == 0)		p.set_op("add");
-			else if (mode == 1) p.set_op("or");
-			else if (mode == 2) p.set_op("adc");
-			else if (mode == 3) p.set_op("sbb");
-			else if (mode == 4) p.set_op("and");
-			else if (mode == 5) p.set_op("sub");
-			else if (mode == 6) p.set_op("xor");
-			else if (mode == 7) p.set_op("cmp");
+
+			int mode = getr1(b, ++l);
+			switch (mode)
+			{
+			case 0:
+				p.set_op("add");
+				break;
+			case 1:
+				p.set_op("or");
+				break;
+			case 2:
+				p.set_op("adc");
+				break;
+			case 3:
+				p.set_op("sbb");
+				break;
+			case 4:
+				p.set_op("and");
+				break;
+			case 5:
+				p.set_op("sub");
+				break;
+			case 6:
+				p.set_op("xor");
+				break;
+			case 7:
+				p.set_op("cmp");
+				break;
+			}
 
 			p.flags |= Fl_src_dest | Fl_src_rm32 | Fl_dest_disp8;
-			p.r_mod = getmode40(b,l);
-			p.dest.r32 = getr1(b,l);
-		} else if (b[l] == 0x84){
+			p.r_mod = getmode40(b, l);
+			p.dest.r32 = getr1(b, l);
+			break;
+		}
+		case 0x84:
+		{
 			p.src.pref |= PRE_BYTE_PTR;
 			p.set_op("test");
 			p.flags |= Fl_src_dest | Fl_src_rm32 | Fl_dest_r8;
-			p.r_mod = getmode40(b,++l);
-			p.dest.r32 = getr1(b,l);
-		} else if (b[l] == 0x85){
+			p.r_mod = getmode40(b, ++l);
+			p.dest.r32 = getr1(b, l);
+			break;
+		}
+		case 0x85:
+		{
 			p.set_op("test");
 			p.flags |= Fl_src_dest | Fl_src_rm32 | Fl_dest_r32;
-			p.r_mod = getmode40(b,++l);
-			p.dest.r32 = getr1(b,l);
-		} else if (b[l] == 0x86){
+			p.r_mod = getmode40(b, ++l);
+			p.dest.r32 = getr1(b, l);
+			break;
+		}
+		case 0x86:
+		{
 			p.src.pref |= PRE_BYTE_PTR;
 			p.set_op("xchg");
 			p.flags |= Fl_src_dest | Fl_src_rm32 | Fl_dest_r8;
-			p.r_mod = getmode40(b,++l);
-			p.dest.r32 = getr1(b,l);
-		} else if (b[l] == 0x87){
+			p.r_mod = getmode40(b, ++l);
+			p.dest.r32 = getr1(b, l);
+			break;
+		}
+		case 0x87:
+		{
 			p.set_op("xchg");
 			p.flags |= Fl_src_dest | Fl_src_rm32 | Fl_dest_r32;
-			p.r_mod = getmode40(b,++l);
-			p.dest.r32 = getr1(b,l);
-		} else if (b[l] == 0x88){
+			p.r_mod = getmode40(b, ++l);
+			p.dest.r32 = getr1(b, l);
+			break;
+		}
+		case 0x88:
+		{
 			p.set_op("mov");
 			p.flags |= Fl_src_dest | Fl_src_rm32 | Fl_dest_r8;
-			p.r_mod = getmode40(b,++l);
-			p.dest.r8 = getr1(b,l);
-		} else if (b[l] == 0x89){
+			p.r_mod = getmode40(b, ++l);
+			p.dest.r8 = getr1(b, l);
+			break;
+		}
+		case 0x89:
+		{
 			p.set_op("mov");
 			p.flags |= Fl_src_dest | Fl_src_rm32 | Fl_dest_r32;
-			p.r_mod = getmode40(b,++l);
-			p.dest.r32 = getr1(b,l);
-		} else if (b[l] == 0x8A){
+			p.r_mod = getmode40(b, ++l);
+			p.dest.r32 = getr1(b, l);
+			break;
+		}
+		case 0x8A:
+		{
 			p.set_op("mov");
 			p.flags |= Fl_src_dest | Fl_src_r8 | Fl_dest_rm32;
-			p.r_mod = getmode40(b,++l);
-			p.src.r8 = getr1(b,l);
-		} else if (b[l] == 0x8B){
+			p.r_mod = getmode40(b, ++l);
+			p.src.r8 = getr1(b, l);
+			break;
+		}
+		case 0x8B:
+		{
 			p.set_op("mov");
 			p.flags |= Fl_src_dest | Fl_src_r32 | Fl_dest_rm32;
-			p.r_mod = getmode40(b,++l);
-			p.src.r32 = getr1(b,l);
-		} else if (b[l] == 0x8D){
+			p.r_mod = getmode40(b, ++l);
+			p.src.r32 = getr1(b, l);
+			break;
+		}
+		case 0x8D:
+		{
 			p.set_op("lea");
 			p.flags |= Fl_src_dest | Fl_src_r32 | Fl_dest_rm32;
-			p.r_mod = getmode40(b,++l);
-			p.src.r32 = getr1(b,l);
-		} else if (b[l] == 0x90){
+			p.r_mod = getmode40(b, ++l);
+			p.src.r32 = getr1(b, l);
+			break;
+		}
+		case 0x90:
+		{
 			p.set_op("nop");
 			p.flags |= Fl_none;
 			l++;
-		} else if (b[l] == 0x9F){
+			break;
+		}
+		case 0x9F:
+		{
 			p.set_op("lahf");
 			p.flags |= Fl_none;
 			l++;
-		} else if (b[l] == 0xA0){
+			break;
+		}
+		case 0xA0:
+		{
 			p.dest.pref |= PRE_DWORD_PTR;
 			p.set_op("mov");
 			p.flags |= Fl_src_dest | Fl_src_r8 | Fl_dest_disp32;
 			p.src.r8 = 0;
 			l++;
-		} else if (b[l] == 0xA1){
+			break;
+		}
+		case 0xA1:
+		{
 			p.dest.pref |= PRE_DWORD_PTR;
 			p.set_op("mov");
 			p.flags |= Fl_src_dest | Fl_src_r32 | Fl_dest_disp32;
 			p.src.r32 = 0;
 			l++;
-		} else if (b[l] == 0xA2){
+			break;
+		}
+		case 0xA2:
+		{
 			p.src.pref |= PRE_DWORD_PTR;
 			p.set_op("mov");
 			p.flags |= Fl_src_dest | Fl_src_disp32 | Fl_dest_r8;
 			p.dest.r8 = 0;
 			l++;
-		} else if (b[l] == 0xA3){
+			break;
+		}
+		case 0xA3:
+		{
 			p.src.pref |= PRE_DWORD_PTR;
 			p.set_op("mov");
 			p.flags |= Fl_src_dest | Fl_src_disp32 | Fl_dest_r32;
 			p.dest.r32 = 0;
 			l++;
-		} else if (b[l] == 0xA8){
+			break;
+		}
+		case 0xA8:
+		{
 			p.set_op("test");
 			p.flags |= Fl_src_dest | Fl_src_r8 | Fl_dest_disp8;
 			p.src.r8 = 0;
 			l++;
-		} else if (b[l] == 0xA9){
+			break;
+		}
+		case 0xA9:
+		{
 			p.set_op("test");
 			p.flags |= Fl_src_dest | Fl_src_r32 | Fl_dest_disp32;
 			p.src.r32 = 0;
 			l++;
-		} else if ((c=(b[l] & 0xB0)) && b[l]<c+0x8){
+			break;
+		}
+		case 0xB0:
+		case 0xB1:
+		case 0xB2:
+		case 0xB3:
+		case 0xB4:
+		case 0xB5:
+		case 0xB6:
+		case 0xB7:
+		{
+			c = (b[l] & 0xB0);
 			p.set_op("mov");
 			p.flags |= Fl_src_dest | Fl_src_r8 | Fl_dest_disp8;
 			p.src.r8 = b[l] - c;
 			l++;
-		} else if ((c=(b[l] & 0xB8)) && b[l]<c+0x8){
+			break;
+		}
+		case 0xB8:
+		case 0xB9:
+		case 0xBA:
+		case 0xBB:
+		case 0xBC:
+		case 0xBD:
+		case 0xBE:
+		case 0xBF:
+		{
+			c = (b[l] & 0xB8);
 			p.set_op("mov");
 			p.flags |= Fl_src_dest | Fl_src_r32 | Fl_dest_disp32;
 			p.src.r32 = b[l] - c;
 			l++;
-		} else if (b[l] == 0xC0){
+			break;
+		}
+		case 0xC0:
+		{
 			p.src.pref |= PRE_BYTE_PTR;
-			int mode = getr1(b,++l);
-			if (mode == 0)		p.set_op("rol");
-			else if (mode == 1) p.set_op("ror");
-			else if (mode == 2) p.set_op("rcl");
-			else if (mode == 3) p.set_op("rcr");
-			else if (mode == 4) p.set_op("shl");
-			else if (mode == 5) p.set_op("shr");
-			else if (mode == 6) p.set_op("rol");
-			else if (mode == 7) p.set_op("sar");
+
+			int mode = getr1(b, ++l);
+			switch (mode)
+			{
+			case 0:
+				p.set_op("rol");
+				break;
+			case 1:
+				p.set_op("ror");
+				break;
+			case 2:
+				p.set_op("rcl");
+				break;
+			case 3:
+				p.set_op("rcr");
+				break;
+			case 4:
+				p.set_op("shl");
+				break;
+			case 5:
+				p.set_op("shr");
+				break;
+			case 6:
+				p.set_op("sal");
+				break;
+			case 7:
+				p.set_op("sar");
+				break;
+			}
 
 			p.flags |= Fl_src_dest | Fl_src_rm32 | Fl_dest_disp8;
-			p.r_mod = getmode40(b,l);
-			p.dest.r32 = getr1(b,l);
-		} else if (b[l] == 0xC1){
-			int mode = getr1(b,++l);
-			if (mode == 0)		p.set_op("rol");
-			else if (mode == 1) p.set_op("ror");
-			else if (mode == 2) p.set_op("rcl");
-			else if (mode == 3) p.set_op("rcr");
-			else if (mode == 4) p.set_op("shl");
-			else if (mode == 5) p.set_op("shr");
-			else if (mode == 6) p.set_op("rol");
-			else if (mode == 7) p.set_op("sar");
+			p.r_mod = getmode40(b, l);
+			p.dest.r32 = getr1(b, l);
+			break;
+		}
+		case 0xC1: 
+		{
+			int mode = getr1(b, ++l);
+			switch (mode)
+			{
+			case 0:
+				p.set_op("rol");
+				break;
+			case 1:
+				p.set_op("ror");
+				break;
+			case 2:
+				p.set_op("rcl");
+				break;
+			case 3:
+				p.set_op("rcr");
+				break;
+			case 4:
+				p.set_op("shl");
+				break;
+			case 5:
+				p.set_op("shr");
+				break;
+			case 6:
+				p.set_op("sal");
+				break;
+			case 7:
+				p.set_op("sar");
+				break;
+			}
 
 			p.flags |= Fl_src_dest | Fl_src_rm32 | Fl_dest_disp8;
-			p.r_mod = getmode40(b,l);
-			p.dest.r32 = getr1(b,l);
-		} else if (b[l] == 0xC2){
+			p.r_mod = getmode40(b, l);
+			p.dest.r32 = getr1(b, l);
+			break;
+		}
+		case 0xC2: 
+		{
 			p.set_op("ret");
 			p.flags |= Fl_src_only | Fl_src_disp16;
 			l++;
-		} else if (b[l] == 0xC3){
+			break;
+		}
+		case 0xC3: 
+		{
 			p.set_op("retn");
 			p.flags |= Fl_none;
 			l++;
-		} else if (b[l] == 0xC6) {
+			break;
+		}
+		case 0xC6:
+		{
 			p.src.pref |= PRE_BYTE_PTR;
-			int mode = getr1(b,++l);
-			p.r_mod = getmode40(b,l);
-			if (mode == 0) {
+			int mode = getr1(b, ++l);
+			p.r_mod = getmode40(b, l);
+			if (mode == 0) 
+			{
 				p.set_op("mov");
 				p.flags |= Fl_src_dest | Fl_src_rm32 | Fl_dest_disp8;
 			}
-		} else if (b[l] == 0xC7) {
+			break;
+		}
+		case 0xC7: 
+		{
 			p.src.pref |= PRE_DWORD_PTR;
-			int mode = getr1(b,++l);
-			p.r_mod = getmode40(b,l);
-			if (mode == 0) {
+			int mode = getr1(b, ++l);
+			p.r_mod = getmode40(b, l);
+			if (mode == 0) 
+			{
 				p.set_op("mov");
 				p.flags |= Fl_src_dest | Fl_src_rm32 | Fl_dest_disp32;
 			}
-		} else if (b[l] == 0xCC) {
+			break;
+		}
+		case 0xCC:
+		{
 			p.set_op("align");
 			p.flags |= Fl_none;
 			l++;
-		} else if (b[l] == 0xD3){ // *ADD TO EYESTEP C#
+			break;
+		}
+		case 0xD3:
+		{
 			p.src.pref |= PRE_DWORD_PTR;
 			p.flags |= Fl_src_dest | Fl_src_r32 | Fl_dest_r8;
 
 			int mode = getr1(b, ++l);
-			if (mode == 0)		p.set_op("rol");
-			else if (mode == 1) p.set_op("ror");
-			else if (mode == 2) p.set_op("rcl");
-			else if (mode == 3) p.set_op("rcr");
-			else if (mode == 4) p.set_op("shl");
-			else if (mode == 5) p.set_op("shr");
-			else if (mode == 6) p.set_op("sal");
-			else if (mode == 7) p.set_op("sar");
+			switch (mode)
+			{
+			case 0:
+				p.set_op("rol");
+				break;
+			case 1:
+				p.set_op("ror");
+				break;
+			case 2:
+				p.set_op("rcl");
+				break;
+			case 3:
+				p.set_op("rcr");
+				break;
+			case 4:
+				p.set_op("shl");
+				break;
+			case 5:
+				p.set_op("shr");
+				break;
+			case 6:
+				p.set_op("sal");
+				break;
+			case 7:
+				p.set_op("sar");
+				break;
+			}
 
 			p.r_mod = getmode40(b, l);
 			p.dest.r8 = (getr2(b, l) + 1) % 8;
-		} else if (b[l] == 0xE8) {
+			break;
+		}
+		case 0xE8:
+		{
 			p.set_op("call");
 			p.flags |= Fl_src_only | Fl_rel32;
 			l++; // start at relative value
-		} else if (b[l] == 0xE9) {
+			break;
+		}
+		case 0xE9: 
+		{
 			p.set_op("jmp");
 			p.flags |= Fl_src_only | Fl_rel32;
 			l++; // start at relative value
-		} else if (b[l] == 0xEB) {
+			break;
+		}
+		case 0xEB: 
+		{
 			p.set_op("jmp short");
 			p.flags |= Fl_src_only | Fl_rel8;
 			l++; // start at relative value
-		} else if (b[l] == 0xF6){
-			int mode = getr1(b,++l);
-			if (mode == 0){ // only a test instruction
+			break;
+		}
+		case 0xF6:
+		{
+			int mode = getr1(b, ++l);
+			if (mode == 0) // only a test instruction
+			{
 				p.src.pref |= PRE_BYTE_PTR;
 				p.set_op("test");
 				p.flags |= Fl_src_dest | Fl_src_rm32 | Fl_dest_disp8;
-				p.r_mod = getmode40(b,l);
-				p.dest.r8 = getr1(b,l);
+				p.r_mod = getmode40(b, l);
+				p.dest.r8 = getr1(b, l);
 			}
-		} else if (b[l] == 0xFF){
-			int mode = getr1(b,++l);
-			if (mode == 0)		p.set_op("inc");
-			else if (mode == 1) p.set_op("dec");
-			else if (mode == 2) p.set_op("call");
-			else if (mode == 3) p.set_op("call");
-			else if (mode == 4) p.set_op("jmp");
-			else if (mode == 5) p.set_op("jmp far");
-			else if (mode == 6) p.set_op("push");
+			break;
+		}
+		case 0xFF: 
+		{
+			int mode = getr1(b, ++l);
+
+			switch (mode)
+			{
+			case 0:
+				p.set_op("inc");
+				break;
+			case 1:
+				p.set_op("dec");
+				break;
+			case 2:
+				p.set_op("call");
+				break;
+			case 3:
+				p.set_op("call");
+				break;
+			case 4:
+				p.set_op("jmp");
+				break;
+			case 5:
+				p.set_op("jmp far");
+				break;
+			case 6:
+				p.set_op("push");
+				break;
+			}
 
 			p.src.pref |= PRE_DWORD_PTR;
 			p.flags |= Fl_src_only | Fl_src_rm32;
-			p.r_mod = getmode40(b,l);
+			p.r_mod = getmode40(b, l);
+			break;
+		}
 		}
 
 
-
-
-
-
-
+		// To-do: possibly test all of these flags 
+		// through a switch case to majorly optimize it
 
 		// Append first operand (source)
 		if (p.flags & Fl_src_imm8) { // not fullproof (havent used in src operand yet)
 			addoff8(p.data, b, l, p.src.imm8); // 8 bit offset or signed value
-		} else if (p.flags & Fl_src_imm16){
+		}
+		else if (p.flags & Fl_src_imm16) {
 			addoff16(p.data, b, l, p.src.imm16); // 16 bit offset or signed value
-		} else if (p.flags & Fl_src_imm32){
+		}
+		else if (p.flags & Fl_src_imm32) {
 			addoff32(p.data, b, l, p.src.imm32); // 32 bit offset or signed value
-		} else if (p.flags & Fl_src_disp8) { // constant unsigned byte value
-			p.src.disp8 = *(BYTE*)(b+l);
+		}
+		else if (p.flags & Fl_src_disp8) // constant unsigned byte value
+		{
+			p.src.disp8 = *(BYTE*)(b + l);
 			l += 1;
 			char m[4];
 			sprintf_s(m, "%02X", p.src.disp8);
 			strcat_s(p.data, m);
-		} else if (p.flags & Fl_src_disp16) { // constant unsigned short value
-			p.src.disp16 = *(USHORT*)(b+l);
+		}
+		else if (p.flags & Fl_src_disp16) // constant unsigned short value
+		{
+			p.src.disp16 = *(USHORT*)(b + l);
 			l += 2;
 			char m[8];
 			sprintf_s(m, "%04X", p.src.disp16);
 			strcat_s(p.data, m);
-		} else if (p.flags & Fl_src_disp32) { // constant unsigned int value
-			p.src.disp32 = *(UINT*)(b+l);
+		}
+		else if (p.flags & Fl_src_disp32) // constant unsigned int value
+		{
+			p.src.disp32 = *(UINT*)(b + l);
 			l += 4;
+
 			char m[16];
 			sprintf_s(m, "%08X", p.src.disp32);
 			strcat_s(p.data, m);
-		} if (p.flags & Fl_rel8){
-			p.rel8 = *(BYTE*)(b+l);
+		}
+		else if (p.flags & Fl_rel8) 
+		{
+			p.rel8 = *(BYTE*)(b + l);
 			char m[64];
 			sprintf_s(m, "exe+%08X", ((address + l + 1) + p.rel8) - _BASE);
-			l += 1;
 			strcat_s(p.data, m);
-		} else if (p.flags & Fl_rel16){
-			p.rel16 = *(USHORT*)(b+l);
+
+			l += 1;
+		}
+		else if (p.flags & Fl_rel16) 
+		{
+			p.rel16 = *(USHORT*)(b + l);
 			char m[64];
 			sprintf_s(m, "exe+%08X", ((address + l + 2) + p.rel16) - _BASE);
-			l += 2;
 			strcat_s(p.data, m);
-		} else if (p.flags & Fl_rel32){
-			p.rel32 = *(UINT*)(b+l);
+
+			l += 2;
+		}
+		else if (p.flags & Fl_rel32) 
+		{
+			p.rel32 = *(UINT*)(b + l);
 			char m[64];
 			sprintf_s(m, "exe+%08X", ((address + l + 4) + p.rel32) - _BASE);
-			l += 4;
 			strcat_s(p.data, m);
-		} else if (p.flags & Fl_src_r8)
+
+			l += 4;
+		}
+		else if (p.flags & Fl_src_r8)
 			strcat_s(p.data, c_reg_8[p.src.r8]);
 		else if (p.flags & Fl_src_r16)
 			strcat_s(p.data, c_reg_16[p.src.r16]);
@@ -1234,8 +1865,10 @@ namespace disassembler {
 			strcat_s(p.data, c_reg_32[p.src.r32]);
 		else if (p.flags & Fl_src_rxmm)
 			strcat_s(p.data, c_reg_xmm[p.src.rxmm]);
-		else if (p.flags & Fl_src_rm32) {
-			if (p.r_mod != 3) {
+		else if (p.flags & Fl_src_rm32) 
+		{
+			if (p.r_mod != 3) 
+			{
 				if (p.src.pref & PRE_BYTE_PTR)
 					strcat_s(p.data, "byte ptr");
 				else if (p.src.pref & PRE_WORD_PTR)
@@ -1244,136 +1877,193 @@ namespace disassembler {
 					strcat_s(p.data, "dword ptr");
 				else if (p.src.pref & PRE_QWORD_PTR)
 					strcat_s(p.data, "qword ptr");
-				else if (p.pref & pre_seg) {
-					switch(p.p_seg){
-						case seg_cs: strcat_s(p.data, "cs:"); break;
-						case seg_ss: strcat_s(p.data, "ss:"); break;
-						case seg_ds: strcat_s(p.data, "ds:"); break;
-						case seg_es: strcat_s(p.data, "es:"); break;
-						case seg_fs: strcat_s(p.data, "fs:"); break;
-						case seg_gs: strcat_s(p.data, "gs:"); break;
-						default: break;
+				else if (p.pref & pre_seg) 
+				{
+					switch (p.p_seg) 
+					{
+					case seg_cs: 
+						strcat_s(p.data, "cs:");
+						break;
+					case seg_ss: 
+						strcat_s(p.data, "ss:"); 
+						break;
+					case seg_ds: 
+						strcat_s(p.data, "ds:"); 
+						break;
+					case seg_es: 
+						strcat_s(p.data, "es:"); 
+						break;
+					case seg_fs: 
+						strcat_s(p.data, "fs:");
+						break;
+					case seg_gs: 
+						strcat_s(p.data, "gs:"); 
+						break;
+					default: break;
 					}
 				}
 
 				strcat_s(p.data, "[");
 			}
 
-			int mode = b[l++]%8;
-			switch (p.r_mod) {
-				case 0: // 0x00-0x3F
-					if (mode == 5) {
-						p.flags |= Fl_src_disp8;
-						p.src.disp32 = *(UINT*)(b+l);
-						char m[16];
-						sprintf_s(m,"%08X",p.src.disp32);
-						strcat_s(p.data, m);
-						l += 4;
-					} else if (mode != 4) {
-						p.src.r32 = mode;
-						strcat_s(p.data, c_reg_32[p.src.r32]);
-					} else { // Extended mode with a possible 32-bit offset
-						mode = getmode20(b,l);
-						p.src.r32 = b[l]%8;
-							
-						// The order that this is done is extremely
-						// precise to work for the weird-ass modes
-						// intel has in place -- do not change
-						if (!(b[l]-(32*mode) < 8 && (mode%2==1))){
-							if (b[l]%8 != 5){
-								strcat_s(p.data, c_reg_32[p.src.r32]);
-								strcat_s(p.data, "+");
-							}
+			int mode = b[l++] % 8;
 
-							p.src.r_2 = getr1(b,l);
-							strcat_s(p.data, c_reg_32[p.src.r_2]);
+			switch (p.r_mod) 
+			{
+			case 0: // 0x00-0x3F
+				if (mode == 5) 
+				{
+					p.flags |= Fl_src_disp8;
+					p.src.disp32 = *(UINT*)(b + l);
+					char m[16];
+					sprintf_s(m, "%08X", p.src.disp32);
+					strcat_s(p.data, m);
+					l += 4;
+				}
+				else if (mode != 4) 
+				{
+					p.src.r32 = mode;
+					strcat_s(p.data, c_reg_32[p.src.r32]);
+				}
+				else { // Extended mode with a possible 32-bit offset
+					mode = getmode20(b, l);
+					p.src.r32 = b[l] % 8;
 
-							p.src.mul = mults[getmode40(b,l)];
-							if (p.src.mul != 0) {
-								char m[4];
-								sprintf_s(m, "*%i", p.src.mul);
-								strcat_s(p.data, m);
-							}
-
-							if (b[l]%8 == 5){
-								p.flags |= Fl_src_imm32;
-								l++; addoff32(p.data, b, l, p.src.imm32); l--;
-							}
-						} else {
-							if (b[l]-(32*mode) == 5){
-								p.flags |= Fl_src_imm32;
-								l++; addoff32(p.data, b, l, p.src.imm32); l--;
-							} else
-								strcat_s(p.data, c_reg_32[p.src.r32]);
-						}
-						l++;
-					}
-				break;
-				case 1: case 2: // 0x40-0x7F, 0x80-0xBF
-					if (p.r_mod == 1)
-						p.flags |= Fl_src_imm8;
-					else if (p.r_mod == 2)
-						p.flags |= Fl_src_imm32;
-
-					if (mode != 4) {
-						p.src.r32 = mode;
-						strcat_s(p.data, c_reg_32[p.src.r32]);
-
-						if (p.r_mod == 1) {
-							addoff8(p.data, b, l, p.src.imm8);
-						} else if (p.r_mod == 2) {
-							addoff32(p.data, b, l, p.src.imm32);
-						}
-					} else { // Extended mode with a 8-bit or 32-bit offset
-						mode = getmode20(b,l);;
-						p.src.r32 = b[l]%8;
-						strcat_s(p.data, c_reg_32[p.src.r32]);
-
-						if (!(b[l]-(32*mode) < 8 && (mode%2==1))){
-							p.src.r_2 = getr1(b, l);
+					// The order that this is done is extremely
+					// precise to work for the weird-ass modes
+					// intel has in place -- do not change
+					if (!(b[l] - (32 * mode) < 8 && (mode % 2 == 1))) 
+					{
+						if (b[l] % 8 != 5) 
+						{
+							strcat_s(p.data, c_reg_32[p.src.r32]);
 							strcat_s(p.data, "+");
-							strcat_s(p.data, c_reg_32[p.src.r_2]);
-
-							p.src.mul = mults[getmode40(b,l)];
-							if (p.src.mul != 0) {
-								char m[4];
-								sprintf_s(m, "*%i", p.src.mul);
-								strcat_s(p.data, m);
-							}
 						}
 
-						l++;
-						if (p.r_mod == 1) {
-							addoff8(p.data, b, l, p.src.imm8);
-						} else if (p.r_mod == 2) {
-							addoff32(p.data, b, l, p.src.imm32);
+						p.src.r_2 = getr1(b, l);
+						strcat_s(p.data, c_reg_32[p.src.r_2]);
+
+						p.src.mul = mults[getmode40(b, l)];
+						if (p.src.mul != 0) 
+						{
+							char m[4];
+							sprintf_s(m, "*%i", p.src.mul);
+							strcat_s(p.data, m);
+						}
+
+						if (b[l] % 8 == 5) 
+						{
+							p.flags |= Fl_src_imm32;
+							l++; 
+							addoff32(p.data, b, l, p.src.imm32); 
+							l--;
 						}
 					}
+					else 
+					{
+						if (b[l] - (32 * mode) == 5) 
+						{
+							p.flags |= Fl_src_imm32;
+							l++; 
+							addoff32(p.data, b, l, p.src.imm32); 
+							l--;
+						}
+						else {
+							strcat_s(p.data, c_reg_32[p.src.r32]);
+						}
+					}
+					l++;
+				}
 				break;
-				default: // 0xC0-0xFF
-					if (p.flags & Fl_dest_r8 || p.src.pref & PRE_BYTE_PTR){
-						p.src.r8 = mode;
-						strcat_s(p.data, c_reg_8[p.src.r8]);
-					} else if (p.flags & Fl_dest_r16 || p.src.pref & PRE_WORD_PTR){
-						p.src.r16 = mode;
-						strcat_s(p.data, c_reg_16[p.src.r16]);
-					} else if (p.flags & Fl_dest_rxmm || p.src.pref & PRE_QWORD_PTR) {
-						p.src.rxmm = mode;
-						strcat_s(p.data, c_reg_xmm[p.src.rxmm]);
-					} else {
-						p.src.r32 = mode;
-						strcat_s(p.data, c_reg_32[p.src.r32]);
+			case 1: case 2: // 0x40-0x7F, 0x80-0xBF
+				if (p.r_mod == 1)
+				{
+					p.flags |= Fl_src_imm8;
+				} else if (p.r_mod == 2)
+				{
+					p.flags |= Fl_src_imm32;
+				}
+
+				if (mode != 4) 
+				{
+					p.src.r32 = mode;
+					strcat_s(p.data, c_reg_32[p.src.r32]);
+
+					if (p.r_mod == 1) 
+					{
+						addoff8(p.data, b, l, p.src.imm8);
 					}
+					else if (p.r_mod == 2) 
+					{
+						addoff32(p.data, b, l, p.src.imm32);
+					}
+				}
+				else { // Extended mode with a 8-bit or 32-bit offset
+					mode = getmode20(b, l);;
+					p.src.r32 = b[l] % 8;
+					strcat_s(p.data, c_reg_32[p.src.r32]);
+
+					if (!(b[l] - (32 * mode) < 8 && (mode % 2 == 1))) 
+					{
+						p.src.r_2 = getr1(b, l);
+						strcat_s(p.data, "+");
+						strcat_s(p.data, c_reg_32[p.src.r_2]);
+
+						p.src.mul = mults[getmode40(b, l)];
+						if (p.src.mul != 0) 
+						{
+							char m[4];
+							sprintf_s(m, "*%i", p.src.mul);
+							strcat_s(p.data, m);
+						}
+					}
+
+					l++;
+					if (p.r_mod == 1) 
+					{
+						addoff8(p.data, b, l, p.src.imm8);
+					} else if (p.r_mod == 2) 
+					{
+						addoff32(p.data, b, l, p.src.imm32);
+					}
+				}
+				break;
+			default: // 0xC0-0xFF
+
+				if (p.flags & Fl_dest_r8 || p.src.pref & PRE_BYTE_PTR) 
+				{
+					p.src.r8 = mode;
+					strcat_s(p.data, c_reg_8[p.src.r8]);
+				}
+				else if (p.flags & Fl_dest_r16 || p.src.pref & PRE_WORD_PTR) 
+				{
+					p.src.r16 = mode;
+					strcat_s(p.data, c_reg_16[p.src.r16]);
+				}
+				else if (p.flags & Fl_dest_rxmm || p.src.pref & PRE_QWORD_PTR) 
+				{
+					p.src.rxmm = mode;
+					strcat_s(p.data, c_reg_xmm[p.src.rxmm]);
+				} else 
+				{
+					p.src.r32 = mode;
+					strcat_s(p.data, c_reg_32[p.src.r32]);
+				}
+
 				break;
 			}
 
-			if (p.r_mod != 3) strcat_s(p.data, "]");
+			if (p.r_mod != 3)
+			{
+				strcat_s(p.data, "]");
+			}
 		}
 
 
 
 		// Instruction uses both operands?
-		if (p.flags & Fl_src_dest) {
+		if (p.flags & Fl_src_dest) 
+		{
 			strcat_s(p.data, ",");
 
 			// Append second operand (destination)
@@ -1381,29 +2071,41 @@ namespace disassembler {
 			// and not applied here
 			if (p.flags & Fl_dest_imm8) {
 				addoff8(p.data, b, l, p.dest.imm8);
-			} else if (p.flags & Fl_dest_imm16){
+			}
+			else if (p.flags & Fl_dest_imm16) {
 				addoff16(p.data, b, l, p.dest.imm16);
-			} else if (p.flags & Fl_dest_imm32){
+			}
+			else if (p.flags & Fl_dest_imm32) {
 				addoff32(p.data, b, l, p.dest.imm32);
-			} else if (p.flags & Fl_dest_disp8) { // constant unsigned byte value
-				p.dest.disp8 = *(BYTE*)(b+l);
+			}
+			else if (p.flags & Fl_dest_disp8) // constant unsigned byte value
+			{
+				p.dest.disp8 = *(BYTE*)(b + l);
 				l += 1;
+
 				char m[4];
 				sprintf_s(m, "%02X", p.dest.disp8);
 				strcat_s(p.data, m);
-			} else if (p.flags & Fl_dest_disp16) { // constant unsigned short value
-				p.dest.disp16 = *(USHORT*)(b+l);
+			}
+			else if (p.flags & Fl_dest_disp16) // constant unsigned short value
+			{
+				p.dest.disp16 = *(USHORT*)(b + l);
 				l += 2;
+
 				char m[8];
 				sprintf_s(m, "%04X", p.dest.disp16);
 				strcat_s(p.data, m);
-			} else if (p.flags & Fl_dest_disp32) { // constant unsigned int value
-				p.dest.disp32 = *(UINT*)(b+l);
+			}
+			else if (p.flags & Fl_dest_disp32)  // constant unsigned int value
+			{
+				p.dest.disp32 = *(UINT*)(b + l);
 				l += 4;
+
 				char m[16];
 				sprintf_s(m, "%08X", p.dest.disp32);
 				strcat_s(p.data, m);
-			} else if (p.flags & Fl_dest_r8)
+			}
+			else if (p.flags & Fl_dest_r8)
 				strcat_s(p.data, c_reg_8[p.dest.r8]);
 			else if (p.flags & Fl_dest_r16)
 				strcat_s(p.data, c_reg_16[p.dest.r16]);
@@ -1411,8 +2113,10 @@ namespace disassembler {
 				strcat_s(p.data, c_reg_32[p.dest.r32]);
 			else if (p.flags & Fl_dest_rxmm)
 				strcat_s(p.data, c_reg_xmm[p.dest.rxmm]);
-			else if (p.flags & Fl_dest_rm32) {
-				if (p.r_mod != 3) {
+			else if (p.flags & Fl_dest_rm32) 
+			{
+				if (p.r_mod != 3) 
+				{
 					if (p.dest.pref & PRE_BYTE_PTR)
 						strcat_s(p.data, "byte ptr");
 					else if (p.dest.pref & PRE_WORD_PTR)
@@ -1421,138 +2125,193 @@ namespace disassembler {
 						strcat_s(p.data, "dword ptr");
 					else if (p.dest.pref & PRE_QWORD_PTR)
 						strcat_s(p.data, "qword ptr");
-					else if (p.pref & pre_seg) {
-						switch(p.p_seg){
-							case seg_cs: strcat_s(p.data, "cs:"); break;
-							case seg_ss: strcat_s(p.data, "ss:"); break;
-							case seg_ds: strcat_s(p.data, "ds:"); break;
-							case seg_es: strcat_s(p.data, "es:"); break;
-							case seg_fs: strcat_s(p.data, "fs:"); break;
-							case seg_gs: strcat_s(p.data, "gs:"); break;
-							default: break;
+					else if (p.pref & pre_seg) 
+					{
+						switch (p.p_seg) 
+						{
+						case seg_cs: 
+							strcat_s(p.data, "cs:"); 
+							break;
+						case seg_ss: 
+							strcat_s(p.data, "ss:"); 
+							break;
+						case seg_ds: 
+							strcat_s(p.data, "ds:"); 
+							break;
+						case seg_es: 
+							strcat_s(p.data, "es:"); 
+							break;
+						case seg_fs: 
+							strcat_s(p.data, "fs:"); 
+							break;
+						case seg_gs: 
+							strcat_s(p.data, "gs:"); 
+							break;
+						default: break;
 						}
 					}
 
 					strcat_s(p.data, "[");
 				}
 
-				int mode = b[l++]%8;
-				switch (p.r_mod) {
-					case 0: // 0x00-0x3F
-						if (mode == 5) {
-							p.flags |= Fl_dest_disp32;
-							p.dest.disp32 = *(UINT*)(b+l);
-							char m[16];
-							sprintf_s(m,"%08X",p.dest.disp32);
-							strcat_s(p.data, m);
-							l += 4;
-						} else if (mode != 4) {
-							p.dest.r32 = mode;
-							strcat_s(p.data, c_reg_32[p.dest.r32]);
-						} else { // Extended mode with a possible 32-bit offset
-							mode = getmode20(b,l);
-							p.dest.r32 = b[l]%8;
-							
-							// The order that this is done is extremely precise
-							// and important for the computation
-							if (!(b[l]-(32*mode) < 8 && (mode%2==1))){
-								if (b[l]%8 != 5){
-									strcat_s(p.data, c_reg_32[p.dest.r32]);
-									strcat_s(p.data, "+");
-								}
+				int mode = b[l++] % 8;
 
-								p.dest.r_2 = getr1(b,l);
-								strcat_s(p.data, c_reg_32[p.dest.r_2]);
+				switch (p.r_mod) 
+				{
+				case 0: // 0x00-0x3F
+					if (mode == 5) 
+					{
+						p.flags |= Fl_dest_disp32;
+						p.dest.disp32 = *(UINT*)(b + l);
+						char m[16];
+						sprintf_s(m, "%08X", p.dest.disp32);
+						strcat_s(p.data, m);
+						l += 4;
+					}
+					else if (mode != 4) 
+					{
+						p.dest.r32 = mode;
+						strcat_s(p.data, c_reg_32[p.dest.r32]);
+					}
+					else { // Extended mode with a possible 32-bit offset
+						mode = getmode20(b, l);
+						p.dest.r32 = b[l] % 8;
 
-								p.dest.mul = mults[getmode40(b,l)];
-								if (p.dest.mul != 0) {
-									char m[4];
-									sprintf_s(m, "*%i", p.dest.mul);
-									strcat_s(p.data, m);
-								}
-
-								if (b[l]%8 == 5){
-									p.flags |= Fl_dest_imm32;
-									l++; addoff32(p.data, b, l, p.dest.imm32); l--;
-								}
-							} else {
-								if (b[l]-(32*mode) == 5){
-									p.flags |= Fl_dest_imm32;
-									l++; addoff32(p.data, b, l, p.dest.imm32); l--;
-								} else
-									strcat_s(p.data, c_reg_32[p.dest.r32]);
-							}
-							l++;
-						}
-					break;
-					case 1: case 2: // 0x40-0x7F, 0x80-0xBF
-						if (p.r_mod == 1)
-							p.flags |= Fl_dest_imm8;
-						else if (p.r_mod == 2)
-							p.flags |= Fl_dest_imm32;
-
-						if (mode != 4) {
-							p.dest.r32 = mode;
-							strcat_s(p.data, c_reg_32[p.dest.r32]);
-
-							if (p.r_mod == 1) {
-								addoff8(p.data, b, l, p.dest.imm8);
-							} else if (p.r_mod == 2) {
-								addoff32(p.data, b, l, p.dest.imm32);
-							}
-						} else { // Extended mode with a 8-bit or 32-bit offset
-							mode = getmode20(b,l);
-							p.dest.r32 = b[l]%8;
-							strcat_s(p.data, c_reg_32[p.dest.r32]);
-
-							if (!(b[l]-(32*mode) < 8 && (mode%2==1))){
-								p.dest.r_2 = getr1(b,l);
+						// The order that this is done is extremely precise
+						// and important for the computation
+						if (!(b[l] - (32 * mode) < 8 && (mode % 2 == 1))) 
+						{
+							if (b[l] % 8 != 5) 
+							{
+								strcat_s(p.data, c_reg_32[p.dest.r32]);
 								strcat_s(p.data, "+");
-								strcat_s(p.data, c_reg_32[p.dest.r_2]);
-
-								p.dest.mul = mults[getmode40(b,l)];
-								if (p.dest.mul != 0) {
-									char m[4];
-									sprintf_s(m, "*%i", p.dest.mul);
-									strcat_s(p.data, m);
-								}
 							}
 
-							l++;
-							if (p.r_mod == 1) {
-								addoff8(p.data, b, l, p.dest.imm8);
-							} else if (p.r_mod == 2) {
-								addoff32(p.data, b, l, p.dest.imm32);
+							p.dest.r_2 = getr1(b, l);
+							strcat_s(p.data, c_reg_32[p.dest.r_2]);
+
+							p.dest.mul = mults[getmode40(b, l)];
+							if (p.dest.mul != 0) 
+							{
+								char m[4];
+								sprintf_s(m, "*%i", p.dest.mul);
+								strcat_s(p.data, m);
+							}
+
+							if (b[l] % 8 == 5) 
+							{
+								p.flags |= Fl_dest_imm32;
+								l++; addoff32(p.data, b, l, p.dest.imm32); l--;
 							}
 						}
+						else {
+							if (b[l] - (32 * mode) == 5) 
+							{
+								p.flags |= Fl_dest_imm32;
+								l++; addoff32(p.data, b, l, p.dest.imm32); l--;
+							}
+							else {
+								strcat_s(p.data, c_reg_32[p.dest.r32]);
+							}
+						}
+						l++;
+					}
+
 					break;
-					default: // 0xC0-0xFF
-						if (p.flags & Fl_src_r8 || p.dest.pref & PRE_BYTE_PTR){
-							p.dest.r8 = mode;
-							strcat_s(p.data, c_reg_8[p.dest.r8]);
-						} else if (p.flags & Fl_dest_r16 || p.dest.pref & PRE_WORD_PTR){
-							p.dest.r16 = mode;
-							strcat_s(p.data, c_reg_16[p.dest.r16]);
-						} else if (p.flags & Fl_dest_rxmm || p.dest.pref & PRE_QWORD_PTR) {
-							p.dest.rxmm = mode;
-							strcat_s(p.data, c_reg_xmm[p.dest.rxmm]);
-						} else {
-							p.dest.r32 = mode;
-							strcat_s(p.data, c_reg_32[p.dest.r32]);
+				case 1: case 2: // 0x40-0x7F, 0x80-0xBF
+
+					if (p.r_mod == 1)
+					{
+						p.flags |= Fl_dest_imm8;
+					} else if (p.r_mod == 2) 
+					{
+						p.flags |= Fl_dest_imm32;
+					}
+
+					if (mode != 4) 
+					{
+						p.dest.r32 = mode;
+						strcat_s(p.data, c_reg_32[p.dest.r32]);
+
+						if (p.r_mod == 1) 
+						{
+							addoff8(p.data, b, l, p.dest.imm8);
+						} else if (p.r_mod == 2) 
+						{
+							addoff32(p.data, b, l, p.dest.imm32);
 						}
+					}
+					else { // Extended mode with a 8-bit or 32-bit offset
+						mode = getmode20(b, l);
+						p.dest.r32 = b[l] % 8;
+						strcat_s(p.data, c_reg_32[p.dest.r32]);
+
+						if (!(b[l] - (32 * mode) < 8 && (mode % 2 == 1))) 
+						{
+							p.dest.r_2 = getr1(b, l);
+							strcat_s(p.data, "+");
+							strcat_s(p.data, c_reg_32[p.dest.r_2]);
+
+							p.dest.mul = mults[getmode40(b, l)];
+							if (p.dest.mul != 0) 
+							{
+								char m[4];
+								sprintf_s(m, "*%i", p.dest.mul);
+								strcat_s(p.data, m);
+							}
+						}
+
+						l++;
+						if (p.r_mod == 1) 
+						{
+							addoff8(p.data, b, l, p.dest.imm8);
+						} else if (p.r_mod == 2)
+						{
+							addoff32(p.data, b, l, p.dest.imm32);
+						}
+					}
+
+					break;
+				default: // 0xC0-0xFF
+
+					if (p.flags & Fl_src_r8 || p.dest.pref & PRE_BYTE_PTR) 
+					{
+						p.dest.r8 = mode;
+						strcat_s(p.data, c_reg_8[p.dest.r8]);
+					}
+					else if (p.flags & Fl_dest_r16 || p.dest.pref & PRE_WORD_PTR) 
+					{
+						p.dest.r16 = mode;
+						strcat_s(p.data, c_reg_16[p.dest.r16]);
+					}
+					else if (p.flags & Fl_dest_rxmm || p.dest.pref & PRE_QWORD_PTR) 
+					{
+						p.dest.rxmm = mode;
+						strcat_s(p.data, c_reg_xmm[p.dest.rxmm]);
+					}
+					else {
+						p.dest.r32 = mode;
+						strcat_s(p.data, c_reg_32[p.dest.r32]);
+					}
+
 					break;
 				}
 
-				if (p.r_mod != 3) strcat_s(p.data, "]");
+				if (p.r_mod != 3)
+				{
+					strcat_s(p.data, "]");
+				}
 			}
 		}
 
 		p.len = l;
-		if (p.len == 0){
+
+		if (p.len == 0) 
+		{
 			p.len++; // skip if unidentified
 			strcpy_s(p.data, "?");
 		}
-		
+
 		free(b);
 		return p;
 	}
