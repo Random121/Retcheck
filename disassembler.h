@@ -412,14 +412,6 @@ namespace disassembler
 		BYTE l = 0;
 		BYTE* b = new BYTE[16];
 
-		__asm 
-		{
-			push eax
-			mov eax, fs: [0x30] ;
-			mov eax, [eax + 8];
-			pop eax
-		}
-
 		inst p = inst();
 		p.address = address;
 
