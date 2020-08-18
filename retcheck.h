@@ -2,117 +2,97 @@
 #include <Windows.h>
 #include <vector>
 
-namespace retcheck 
+namespace Retcheck 
 {
-	union func_data 
+	struct func_data 
 	{
-		int address;
-		int size;
+		uint32_t address;
+		uint32_t size;
 	};
 
-	std::vector<func_data> functions;
-
-	int patch(int func_start, bool clone_regardless = false) 
+	auto functions = std::vector<func_data>();
+	
+	uint32_t patch(uint32_t func_start)
 	{
-		int func_end = func_start + 3;
-
-		while (!(*(BYTE*)func_end == 0x55 && *(WORD*)(func_end + 1) == 0xEC8B))
+		auto func_end = func_start + 16;
+		
+		// very optimized (though this looks ugly)
+		while (!(*reinterpret_cast<uint8_t*>(func_end) == 0x55 && *reinterpret_cast<uint16_t*>(func_end + 1) == 0xEC8B))
 		{
-			func_end++;
+			func_end += 16;
 		}
 
-		int func_size = func_end - func_start;
-		int func_at = func_start;
-		std::vector<int>retchecks;
-
-		BYTE check[8];
-
-		while (func_at < func_end) 
-		{
-			memcpy(&check, reinterpret_cast<void*>(func_at), 9);
-
-			// retcheck signature #1
-			if (check[0] == 0x72 && check[2] == 0xA1 && check[7] == 0x8B) 
-			{
-				retchecks.push_back(func_at - func_start);
-				func_at += 8;
-				continue;
-			}
-
-			// retcheck signature #2 (roblox compiled with different opcode)
-			if (check[0] == 0x72 && check[2] == 0x8B && check[8] == 0x8B)
-			{
-				retchecks.push_back(func_at - func_start);
-				func_at += 9;
-				continue;
-			}
-
-			func_at++;
-		}
-
-
-
-		if (retchecks.size() == 0 && !clone_regardless)
+		auto func_size = (func_end - func_start) + 4;
+		auto new_func = reinterpret_cast<uint32_t>(VirtualAlloc(nullptr, func_size, 0x1000 | 0x2000, PAGE_EXECUTE_READWRITE));
+		
+		if (new_func == NULL)
 		{
 			return func_start;
 		}
-		else
+
+		auto func_at = func_start;
+		auto new_func_at = new_func;
+		auto spoof_address = *reinterpret_cast<uint32_t*>(__readfsdword(0x30) + 8) + 0x2800000;
+
+		// scan through the function bytes
+		while (func_at < func_end)
 		{
-			// if there is retcheck or we just want a copied function . . .
-			func_size = func_end - func_start;
-			int func = reinterpret_cast<int>(VirtualAlloc(nullptr, func_size, 0x1000 | 0x2000, 0x40));
-			if (func == 0) {
-				printf("RETCHECK FAILED FOR %08X\n", func_start);
-				return func_start;
+
+			// look for a mov ???,[ebp+4] instruction
+			if (*reinterpret_cast<uint8_t*>(func_at) == 0x8B			// is it mov instruction?
+			 && *reinterpret_cast<uint8_t*>(func_at + 1) % 8 == 5		// second register == ebp?
+			 && *reinterpret_cast<uint8_t*>(func_at + 1) / 0x40 == 1	// uses a 1-byte (imm8) offset?
+			 && *reinterpret_cast<uint8_t*>(func_at + 2) == 0x04		// offset is +4?
+			){
+				auto first_register = (*reinterpret_cast<uint8_t*>(func_at + 1) - 0x40) / 8;
+
+				// replace the instruction with a mov ???,spoof_address
+				*reinterpret_cast<uint8_t*>(new_func_at++) = 0xB8 + first_register;
+				*reinterpret_cast<uint32_t*>(new_func_at) = spoof_address;
+				new_func_at += sizeof(uint32_t);
+
+				func_at += 3;
+
+				continue;
 			}
 
-			BYTE* data = new BYTE[func_size];
-			memcpy(data, reinterpret_cast<void*>(func_start), func_size);
+			// fix relative calls
+			if (*reinterpret_cast<uint8_t*>(func_at) == 0xE8
+			 && 
+				// check if it's aligned properly so it must call a function
+			    (func_at + 5 + *reinterpret_cast<signed int*>(func_at + 1)) % 16 == 0
+			){
+				auto oldrel = *reinterpret_cast<uint32_t*>(func_at + 1);
+				uint32_t relfunc = (func_at + oldrel) + 5;
+				uint32_t newrel = relfunc - (new_func_at + 5); // the new distance
 
-			int i = 0;
-			while (i < func_size) 
-			{
-				// Fix relative calls
-				if (data[i] == 0xE8) {
-					int oldrel = *(int*)(func_start + i + 1);
-					int relfunc = (func_start + i + oldrel) + 5;
+				*reinterpret_cast<uint8_t*>(new_func_at++) = 0xE8;
+				*reinterpret_cast<uint32_t*>(new_func_at) = newrel;
+				new_func_at += sizeof(uint32_t);
 
-					if (relfunc % 0x10 == 0) 
-					{
-						int newrel = relfunc - (func + i + 5);
-						*(int*)(data + i + 1) = newrel;
-						i += 4;
-					}
-				}
-				i++;
+				func_at += 5;
+
+				continue;
 			}
 
-			for (int i : retchecks)
-			{
-				// jump to the epilogue
-				data[i] = 0xEB;
-			}
 
-			// write modified bytes to our new function
-			memcpy(reinterpret_cast<void*>(func), data, func_size);
-			delete[] data;
-
-			// store information about this de-retcheck'd function
-			func_data rdata;
-			rdata.address = func;
-			rdata.size = func_size;
-			functions.push_back(rdata);
-			return func;
+			// add original byte to our function
+			*reinterpret_cast<uint8_t*>(new_func_at++) = *reinterpret_cast<uint8_t*>(func_at++);
 		}
+
+		functions.push_back(func_data({ new_func, func_size }));
+
+		return new_func;
 	}
 
-	// clean up for all retcheck functions
+	// cleans up the patched functions
 	void flush() 
 	{
 		for (size_t i = 0; i < functions.size(); i++) 
 		{
 			VirtualFree(reinterpret_cast<void*>(functions.at(i).address), 0, MEM_RELEASE);
 		}
+
 		functions.clear();
 	}
 }
