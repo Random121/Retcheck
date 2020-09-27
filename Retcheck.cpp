@@ -1,3 +1,5 @@
+// written by static 9/27/20
+//
 #include "retcheck.h"
 #include <cstdarg>
 
