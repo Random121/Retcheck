@@ -3,8 +3,6 @@
 
 namespace Retcheck
 {
-	//private variables defined outside of the function scope
-	//so our assembling is more predictable and accurate
 	uint32_t routine = 0;
 	uint32_t redirect = 0;
 	uint32_t r_func = 0;
@@ -49,14 +47,8 @@ namespace Retcheck
 
 	void init()
 	{
-		// scan for a jmp dword ptr[xxxxxxxx]
-		// this provides an escape outlet within the .text section
-		// that the function will return to, and then jmp immediately
-		// back after our initial jmp, to continue execution flow.
 		routine = *reinterpret_cast<uint32_t*>(__readfsdword(0x30) + 8);
 
-		// AOB scan for this signature:
-		// FF25????????55
 		while (!(
 			*reinterpret_cast<uint16_t*>(routine) == 0x25FF
 		 && 
@@ -66,23 +58,9 @@ namespace Retcheck
 			routine++;
 		}
 
-		// Get the ???????? pointer
 		redirect = *reinterpret_cast<uint32_t*>(routine + 2);
 	}
-
-	// Emulate the call -- this uses a jmp instead of a call,
-	// in which we set up our own prologue and skip
-	// the original. The goal is to have [ebp+4]
-	// set to a particular type of `jmp` instruction
-	// in roblox's .text section.
-	// We have to pick one that jumps to a pointer
-	// that we're able to edit without triggering memcheck.
-	// It passes retcheck because this jmp instruction
-	// is in the .text section.
-	// We rig the pointer of the jmp to jump back to our own
-	// code, continuing flow of execution without ever
-	// modifying any of roblox's code.
-	// 
+	
 	std::tuple<uint32_t, uint64_t> call(void* pfunc, const char* conv, std::vector<packed_arg>args)
 	{
 		is_thiscall = FALSE;
@@ -92,9 +70,7 @@ namespace Retcheck
 		arg_data = nullptr;
 		r_func = reinterpret_cast<uint32_t>(pfunc);
 
-		// ensure that the prologue of this ROBLOX
-		// function is skipped, so that we can set
-		// up our own (rigged)
+		// to-do : add other prologues
 		if (*reinterpret_cast<uint8_t*>(r_func) == 0x55)
 		{
 			r_func += 3;
@@ -156,11 +132,6 @@ namespace Retcheck
 			add eax, 0x18;
 			jmp iterate_args;
 		args_loaded:
-
-			// Set ECX and/or EDX if necessary.
-			// We have already removed the first one or two args
-			// from the list being pushed normally
-			// and have placed it into arg_ecx/arg_edx
 			cmp byte ptr[is_thiscall], 0;
 			je check2;
 			mov esi, arg_data;
@@ -178,14 +149,10 @@ namespace Retcheck
 		retcheck_crusher:
 			push ebp;
 			mov ebp, esp;
-			// carefully set the return location
-			// to the instruction immediately after our
-			// `jmp dword ptr`.
-			// we need to literally check the distance from
-			// `retcheck_crusher` to `func_return`
+			
 			push edi;
-			mov edi, [ebp + 4]; // address of `retcheck_crusher` (during run-time)
-			add edi, 0x24; // this is the correct distance to get to `func_return`
+			mov edi, [ebp + 4];
+			add edi, 0x24;
 			push esi;
 			mov esi, [redirect];
 			mov dword ptr[esi], edi;
@@ -193,8 +160,7 @@ namespace Retcheck
 			mov edi, routine;
 			mov[ebp + 4], edi; // <---- spoof return
 			pop edi;
-			// jmp to the function now...which
-			// we've skipped the prologue of 
+			
 			jmp dword ptr[r_func];
 		func_return:
 
