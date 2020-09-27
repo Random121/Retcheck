@@ -3,6 +3,7 @@
 
 namespace Retcheck
 {
+	// keep these outside of the function scope
 	uint32_t routine = 0;
 	uint32_t redirect = 0;
 	uint32_t r_func = 0;
