@@ -1,3 +1,10 @@
+# Concept
+
+Spoofs the function's return to a point in the code section
+which is used to jump back and continue
+execution flow.
+
+
 # Examples
 
 rL = std::get<0>(Retcheck::call(r_lua_newthread, "cdecl", { rL }));
