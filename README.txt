@@ -1,10 +1,8 @@
 # Concept
 
-Spoofs the function's return to a point
-which is used to jump back and continue
-execution flow, as if nothing happened.
-All without modifying any portion of the text segment,
-or making a copy of the function.
+Spoofs the function's return to a point in roblox's
+own code (retcheck = bypassed) which is used to jump back
+and continue execution flow, as if nothing even happened.
 
 
 # HOW TO USE IT
