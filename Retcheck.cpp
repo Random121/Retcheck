@@ -15,7 +15,6 @@ namespace Retcheck
 	uint8_t is_fastcall = 0;
 	uint32_t arg_ecx = 0;
 	uint32_t arg_edx = 0;
-	uint32_t ret = 0;
 	uint32_t _return32 = 0;
 	uint64_t _return64 = 0;
 	uint32_t stack_cleanup = 0;
@@ -88,11 +87,15 @@ namespace Retcheck
 	// 
 	std::tuple<uint32_t, uint64_t> call(void* pfunc, const char* conv, std::vector<packed_arg>args)
 	{
+		n_args = 0;
+		arg_data = nullptr;
 		stack_cleanup = 0;
 		is_thiscall = FALSE;
 		is_fastcall = FALSE;
-		_return32 = NULL;
-		_return64 = NULL;
+		_return32 = 0;
+		_return64 = 0;
+		arg_ecx = 0;
+		arg_edx = 0;
 		arg_data = nullptr;
 		r_func = reinterpret_cast<uint32_t>(pfunc);
 
@@ -123,7 +126,7 @@ namespace Retcheck
 		}
 		else if (strcmp(conv, "cdecl") == 0)
 		{
-			stack_cleanup = args.size();
+			stack_cleanup = args.size() * 4;
 		}
 
 		std::reverse(args.begin(), args.end());
@@ -177,7 +180,6 @@ namespace Retcheck
 			mov ecx, dword ptr[arg_ecx];
 			mov edx, dword ptr[arg_edx];
 		ready:
-
 			call retcheck_crusher;
 		retcheck_crusher:
 			push ebp;
