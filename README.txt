@@ -2,7 +2,8 @@
 
 Spoofs the function's return to a point in the code section
 which is used to jump back and continue
-execution flow.
+execution flow, as if nothing happened.
+All without modifying any portion of the text segment.
 
 
 # Examples
