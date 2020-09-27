@@ -7,6 +7,7 @@ execution flow.
 
 # Examples
 
+Retcheck::init();
 rL = std::get<0>(Retcheck::call(r_lua_newthread, "cdecl", { rL }));
 
 Retcheck::call(r_lua_getfield, "fastcall", { rL, -10002, "printidentity" });
