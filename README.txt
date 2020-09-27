@@ -7,7 +7,7 @@ All without modifying any portion of the text segment,
 or making a copy of the function.
 
 
-# HOW TO BLOODY USE IT
+# HOW TO USE IT
 
 Retcheck::init();
 rL = std::get<0>(Retcheck::call(r_lua_newthread, "cdecl", { rL }));
